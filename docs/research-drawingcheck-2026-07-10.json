@@ -1,0 +1,258 @@
+{
+ "question": "「2D CAD図面の\"内容\"を機械的に検査する製品・サービス・研究」は本当に存在しないのか、を潰しにいきたい。2026年7月時点。これは私の中心的な主張を反証するための調査であり、**存在する証拠を積極的に探してほしい**。\n\n背景と、検証したい主張:\n建築2D図面（DXF）でAIの作図能力を測るベンチマークを自作した。そこで観測したのは、AIが「幾何は完璧・法規計算も完璧なのに、CADの寸法表示倍率(DIMLFAC)を100にしたせいで、図面に『幅910メートル』と印字される」という誤りを、独立に2回起こしたこと。線は一本残らず正しい位置にあるので、Chamfer distance も IoU も検出できない。\n\n私の主張は「図面チェックは4層に分かれ、(1)ファイル健全性 と (2)形式・作法 は飽和、(3)3D BIMモデルのルールチェックは存在する（Solibri, Navisworks, buildingSMART IDS）、しかし **(4) 2D図面の\"内容\"が現実と一致しているかを検査する仕組みだけが空席** である」というもの。これを潰したい。\n\n調べてほしいこと:\n\n(1) 2D CAD図面の内容整合を検査する商用製品・OSS は存在するか。\n  - 「寸法エンティティの表示値が実際の幾何と一致しているか」を検査するツール。AutoCAD/BricsCAD/ZWCAD のアドイン、LISP、Dimension audit 系。DIMLFAC / DIMSCALE / dimension override / 手打ちテキストで上書きされた寸法（overridden dimension text）を検出する機能は、CADに標準搭載されているか（例: AutoCAD の DIMREASSOC / \"dimension text has been overridden\" 警告）。\n  - 「図面と数量表（BOM/積算）が一致しているか」を検査するツール。\n  - 「平面図と断面図・立面図が同じ建物か」の整合検査（cross-drawing consistency）。\n  - Drawing checker / drawing QA / drawing validation / title block checker / GD&T checker（機械図面側も含む）。\n\n(2) 日本の建設分野での実態。\n  - 国交省の電子納品チェックシステム以外に、CADの「内容」を見るソフトはあるか。商用の電子納品支援ソフト（BIG VAN CAD SUPER、川田テクノシステム、建設システム、福井コンピュータ、Forum8 等）のCADチェック機能は、形式（レイヤ名・線種・色・尺度・図枠）だけか、それとも寸法値と幾何の一致まで見るか。\n  - **照査技術者制度（土木設計業務の照査、建設コンサルタント）は、実際に何を照査しているのか。** 照査要領・照査項目リストは公開されているか。CADの寸法が実寸かどうかは照査項目に入っているか。ここが最重要。\n  - 建築確認申請の審査（指定確認検査機関）は、図面の内容の何をどこまで見るのか。BIM図面審査の試行の現状。\n\n(3) 3D/BIM 側の到達点と、2Dへの適用可能性。\n  - Solibri Model Checker、Navisworks Clash Detective、buildingSMART IDS（Information Delivery Specification）は何を検査でき、何を検査できないか。IDS は2D図面に適用できるか。\n  - BIMでは注記寸法がモデルから導出されるため「表示値と幾何の不一致」は原理的に起きないのか。それとも Revit でも dimension override は可能で、同じ嘘が書けるのか。\n\n(4) AI生成図面の検証という新しい需要。\n  - 「AIが生成したCAD/図面を検証する」ことを謳う製品・研究・スタートアップは存在するか（2024-2026）。\n  - CAD生成モデルの評価で、幾何一致（Chamfer/IoU/valid rate）以外の「意味論的正しさ」を測る研究はあるか。\n  - LLM が CAD ファイルを書くときの典型的な失敗モード（単位・スケール・寸法スタイル）を分類した研究はあるか。\n\n(5) 機械設計・製造の側ではどうか。\n  - 図面検図（drawing check）の自動化。GD&T の自動チェック、寸法の欠落・重複・過剰拘束の検出。\n  - Model-Based Definition (MBD) への移行が、2D図面検査の需要をどう変えたか。\n\n最終的に判定してほしいこと:\n「2D図面の内容整合を機械検査する仕組みは空席」という主張は正しいか、それとも既存製品がすでに埋めているか。\n特に (a) 寸法の表示値と幾何の不一致を検出する機能がCADに標準搭載されているか（これが真なら主張の核心が崩れる）、(b) 日本の照査技術者制度が実質的にこの穴を埋めているか、を明確にしてほしい。\n「存在しない」という結論を出す場合は、探した範囲と、なぜ存在しないと言えるのかの根拠を明示すること。",
+ "summary": "The central thesis largely holds: no automated/mechanical inspector verifies that a 2D drawing's displayed dimension value agrees with its actual geometry, and specifically the DIMLFAC=100 failure the researcher observed is not auto-detected by any CAD system. Autodesk officially documents that a dimension can print a value divorced from its geometry — via a measurement scale factor (DIMLFAC) OR a manual text override — yet the only native detectors (DIMREASSOC, and QSELECT on the \"Text override\" property) are manual, user-initiated, and catch only hand-typed text overrides, so they structurally MISS the DIMLFAC case (a clean associative dimension carrying no override flag). Japan's civil 照査 (design-review) system and the national 電子納品 check system do touch \"content,\" but 照査 does so only through human checklist cross-references (drawing-vs-calc, drawing-vs-quantity/積算, cross-drawing consistency) with no displayed-value-vs-geometry item, and the electronic-delivery system plus commercial verifiers are explicitly format/name/layer-only and \"cannot verify the content.\" On the BIM side, buildingSMART IDS cannot define intrinsic geometry, and AI-CAD-generation research evaluates only geometry-matching metrics (Chamfer/IoU/F1) with no semantic dimension-label or unit-consistency metric — so layer (4), the 2D-content-vs-reality check, genuinely remains a void across CAD tooling, Japanese review practice, BIM validation standards, and AI evaluation. The one potential counterexample — a vendor-marketed \"AI 2D Checker\" (Dessia) claiming automated BOM/GD&T/title-block/dimension-chain validation — failed adversarial verification on a split vote and is unconfirmed.",
+ "findings": [
+  {
+   "claim": "The DIMLFAC / dimension-text-override failure mode is real and officially documented by Autodesk: an AutoCAD linear dimension's displayed value can fail to match the object's actual measured length, with named causes including a measurement scale factor set in the dimension style (DIMLFAC, e.g. =100) and a manual text override typed into the dimension. This exactly matches the AI failure the researcher observed (printing a false length like '910 m').",
+   "confidence": "high",
+   "sources": [
+    "https://www.autodesk.com/support/technical/article/caas/sfdcarticles/sfdcarticles/Linear-dimensions-not-consistent-with-actual-length-of-line.html",
+    "https://knowledge.autodesk.com/support/autocad/troubleshooting/caas/sfdcarticles/sfdcarticles/Linear-dimensions-not-consistent-with-actual-length-of-line.html",
+    "https://help.autodesk.com (Primary Units Tab / DIMLFAC variable)"
+   ],
+   "evidence": "Autodesk's official support article lists the causes of a dimension not matching actual length: 'A scale factor is set in the dimension style' (DIMLFAC — AutoCAD multiplies the measured distance by this factor before display; enter 2 and a 1-inch line reads 2 inches, so DIMLFAC=100 prints 100x the true length) and 'A text override exists for the dimension' (the Text Override field accepts any string and, without the '<>' placeholder, fully replaces the measured value). Both vectors let a drawing literally print a number unrelated to its geometry.",
+   "vote": "3-0 unanimous; merged from claims 0, 1, 11 (primary Autodesk KB)"
+  },
+  {
+   "claim": "AutoCAD provides NO automatic detection or warning that a dimension's displayed value diverges from its geometry. The only native tools — DIMREASSOC (Express Tool) and QSELECT filtering on the 'Text override' property with wildcard '?*' — are manual, user-initiated, and detect ONLY hand-typed text overrides. They structurally MISS the DIMLFAC=100 case, because a scaled dimension is fully associative (DIMASSOC=2), has an empty Text-override field, and reads as a clean measured dimension. This is the core of the researcher's (a) question: the displayed-value-vs-geometry mismatch is not surfaced automatically, and even the manual hunt tools do not catch the observed bug.",
+   "confidence": "high",
+   "sources": [
+    "https://knowledge.autodesk.com/support/autocad/troubleshooting/caas/sfdcarticles/sfdcarticles/Linear-dimensions-not-consistent-with-actual-length-of-line.html",
+    "https://www.cadforum.cz/en/qaID.asp?tip=3832",
+    "https://ukcommunity.arkance.world/hc/en-us/articles/21550761199378-AutoCAD-Tip-Locating-Dimensions-that-have-been-overridden-as-text",
+    "https://docs.autodesk.com (DIMREASSOC Express Tool, GUID-9D2D79DD; To Find Dimensions With Overridden Text, GUID-17A24377)"
+   ],
+   "evidence": "Autodesk's own remedy is manual diagnosis: verify DIMASSOC=2 and DIMLFAC=1, then audit/repair the file — no automatic flag is described (the recurrence of the troubleshooting article is itself evidence AutoCAD does not surface it). DIMREASSOC highlights only dimensions with text overrides after the user selects all; QSELECT keys off the presence of an override string, doing no geometric comparison. Multiple sources (Arkance, CAD Forum) explicitly note DIMREASSOC 'won't identify dimensions with DIMVAR overrides (like DIMLFAC etc.)' — so neither native detector would have caught the researcher's DIMLFAC=100 error. Annotation Monitor auto-flags only DISASSOCIATED annotations, not scaled/associated ones.",
+   "vote": "3-0 unanimous across all five claims; merged from claims 12, 13, 14, 16, 17"
+  },
+  {
+   "claim": "Japan's civil 照査 (design-review) system DOES check content consistency — cross-drawing consistency (一般平面図と縦断図 / 構造図と配筋図 / 構造図と仮設図), drawing-dimension-vs-calculation-book agreement (構造図の基本寸法・座標値・高さ関係は設計計算書等と照合), and drawing-vs-quantity-table/積算 agreement (数量計算に用いた寸法・数値・記号は図面と一致するか) — but ONLY as manual human checklist items on a 照査調書 form, never as an automated tool, and with NO item anywhere checking whether a printed dimension value equals the drawn geometry (no DIMLFAC/DIMSCALE/表示値 item). It verifies drawing-vs-document agreement, treating the printed dimension text itself as trusted ground truth.",
+   "confidence": "high",
+   "sources": [
+    "https://www.e-nexco.co.jp/assets/pdf/bids/stipulation/design_review.pdf",
+    "https://www.pref.chiba.lg.jp/gikan/documents/shousachekku-r0301.pdf"
+   ],
+   "evidence": "Verified verbatim in two primary official documents: NEXCO East 設計照査の手引き (令和8年/Jan 2026) and Chiba Pref 照査項目チェックリスト (R0301/2021). Both are human-filled review forms (columns for 照査実施 済・日付 etc.); grep for 自動/ソフト/システム/プログラム/DIMLFAC/DIMSCALE/表示値/印字 = zero hits. The scale items present (縮尺/用紙サイズ) concern paper-sheet scale, not a CAD display factor. This answers (b): 照査 fills the content-consistency need with human labor and document cross-referencing, not with any mechanical CAD-content inspection; a DIMLFAC 910m-vs-910mm error is not a systematic checklist item (a reviewer might notice it doing item 4, but it is not mechanically verified). Note: the stronger 赤黄チェック 'manual mark-up proves it's human' framing was REFUTED 0-3, so this finding rests on the verbatim checklist items, not on that mechanism claim.",
+   "vote": "3-0 unanimous across four claims; merged from claims 2, 3, 4, 5"
+  },
+  {
+   "claim": "Japan's national electronic-delivery check system (電子納品チェックシステム) and the commercial 電子納品 verifiers are format/convention-only and explicitly cannot verify drawing content. The system checks folder structure, management items, file names, XML syntax, SXF(P21) file format, work-type name, drawing-type file name, and layer name; commercial verifiers add paper size, line type/color, line weight, and text size. None checks a dimension's displayed value against geometry, and the official portal states the system 'cannot verify the content of deliverables such as CAD drawings.'",
+   "confidence": "high",
+   "sources": [
+    "https://www.nilim.go.jp/lab/bcg/siryou/tnn/tnn0403pdf/ks0403015.pdf",
+    "https://www.cals-ed.go.jp/ed_what/",
+    "https://www.nilim.go.jp/japanese/denshi/calsec/q_a/q_a08.htm"
+   ],
+   "evidence": "NILIM technical note Table 9-1/9-2 enumerate exactly the format/name-level items above; cals-ed.go.jp states 「本システムでは、成果品（報告書やCAD図面など）の内容を確認することはできません」 and NILIM Q&A confirms 設計図書の内容については別途対応が必要. Current 2024-2025 releases (土木 Ver.20.0.0 2024-12; NEXCO Ver D8.1.2 2025-07) still limit CAD checks to SXF/CAD製図基準 compliance (paper, figure attributes, text size). The commercial 川田テクノシステム CADチェッカー is described solely as 図面基準適合チェック. Adversarial search for any 電子納品 checker verifying 寸法値/実寸 consistency found none.",
+   "vote": "3-0 unanimous across three claims; merged from claims 6, 7, 8"
+  },
+  {
+   "claim": "The standardized BIM validation framework does NOT close the gap either: buildingSMART IDS (Information Delivery Specification) cannot define or check intrinsic geometry/dimensions — it validates only alphanumeric information via six facets (Entity, Attribute, Property, Classification, Material, PartOf) with no geometry facet. It can validate a stored quantity/property value against range bounds, but it can never detect when a displayed dimension disagrees with the actual geometry, and it is not designed for 2D drawings.",
+   "confidence": "high",
+   "sources": [
+    "https://www.solibri.com/articles/everything-you-need-to-know-about-information-delivery-specifications",
+    "https://github.com/buildingSMART/IDS (UserManual)",
+    "buildingSMART International (IDS limited to alphanumeric information)",
+    "MDPI Buildings 2025 (IDS does not include checks for geometric inconsistencies)"
+   ],
+   "evidence": "Solibri states verbatim: 'IDS currently does not have the capabilities to define intrinsic details of geometry.' Corroborated by the primary buildingSMART IDS spec (6 facets, no geometry facet), buildingSMART International, MDPI peer-reviewed paper, and bimcorner ('IDS can require data, not geometry'). IDS 1.0 Final (2024) is current; the 2025-2026 roadmap adds editors/libraries/GIS, not geometry checking. This confirms that even the leading BIM ruleset addresses data conformance, not displayed-value-vs-geometry — the 2D-content-integrity axis is out of scope for the BIM validation standard.",
+   "vote": "3-0 unanimous; claim 15 (cited source secondary, corroborated by primary buildingSMART spec)"
+  },
+  {
+   "claim": "AI-generated-CAD evaluation research measures only geometry-matching metrics (Chamfer Distance, IoU, F1, invalidity rate) and has NO metric for the semantic correctness of dimension labels, displayed values, unit consistency, or scale — precisely the axis the researcher argues is invisible to geometric metrics. Benchmarks are framed around geometric/topological complexity, not unit/scale/annotation correctness.",
+   "confidence": "high",
+   "sources": [
+    "https://arxiv.org/abs/2605.18430 (Text2CAD-Bench, 2026-05)",
+    "https://arxiv.org/abs/2603.26512 (CADSmith, 2026-03)"
+   ],
+   "evidence": "Text2CAD-Bench frames evaluation around basic-geometry vs complex-topology/advanced-features degradation; its full-text metric list is Chamfer Distance, Invalidity Rate, IoU (256^3 voxel), and VLM feature-scoring — none tests dimension-value-vs-geometry. CADSmith reports only Chamfer/F1/IoU (F1 0.9707->0.9846, IoU 0.8085->0.9629, Chamfer 28.37->0.74); its OpenCASCADE 'validation' is internal geometry (bounding-box/volume/validity), not label-vs-geometry, and it outputs 3D solids, not annotated drawings. These are exactly the geometry-matching metrics the researcher argues cannot detect a DIMLFAC/label error, and the papers confirm no semantic-label metric exists in the field's standard toolkit.",
+   "vote": "3-0 unanimous; merged from claims 9, 10 (both primary arXiv papers)"
+  }
+ ],
+ "caveats": "TIME/CURRENCY: Findings are current as of mid-2026 (NEXCO handbook Jan 2026, IDS 1.0 2024, AI benchmarks Mar-May 2026, government check systems 2024-2025). All are stable frameworks unlikely to have flipped.\n\nSOURCE-FETCH WEAKNESS: The core Autodesk KB URLs (knowledge.autodesk.com and www.autodesk.com/support/technical) returned HTTP 403 on direct fetch; verbatim confirmation of the DIMLFAC/text-override cause list relied on WebSearch summaries of the same article plus independent corroborators (Arkance, CAD Forum, Novedge, BricsCAD forum, Autodesk Community). The technical facts are decades-stable and multiply corroborated, so this does not undermine the conclusion.\n\nTHE ONE POTENTIAL COUNTEREXAMPLE (unconfirmed): A vendor (Dessia, dessia.io) markets an 'AI-powered 2D Checker' claiming to automatically validate the CONTENT of native 2D CAD drawings across six families including BOM consistency, title-block integrity, GD&T, and dimension chains. This claim FAILED adversarial verification on a split vote (1-2) — likely marketing, not independently verified capability, and its 'dimension chains' family is not confirmed to compare displayed value vs geometry. It is the single strongest threat to the 'void' thesis and should be probed directly before the thesis is published as absolute.\n\nBIM IMMUNITY IS UNRESOLVED: The claim that Revit's 'Replace With Text' lets a user force an arbitrary numeric display (making BIM equally capable of the displayed-value≠geometry lie) was REFUTED on a split vote (1-2). Conversely, a verifier note (claim 12) states Revit BLOCKS numeric dimension overrides as a BIM-side guardrail AutoCAD lacks. These two point in opposite directions, so whether BIM is truly immune to the DIMLFAC-class lie is genuinely uncertain.\n\nMECHANICAL-CAD SIDE IS THIN: Claims characterizing SOLIDWORKS Design Checker / Creo ModelCHECK / NX Check-Mate / Inventor Design Checker as 'format/style-only, cannot catch content errors' were REFUTED 0-3 — meaning that characterization could not be verified, NOT that they do check content. Their actual coverage of displayed-value-vs-geometry, and the state of automated GD&T/over-constraint/missing-dimension checking, was not established. Model-Based Definition (MBD) impact on 2D-check demand (research question 5) produced no surviving claim.\n\nSCOPE OF THE 照査 FINDING: The 'human might catch it anyway doing item 4' angle is real — 照査 is not proven to FAIL on a DIMLFAC error, only that it is not a mechanical/systematic check and no explicit displayed-value-vs-geometry item exists. The generalization from NEXCO+Chiba to 'all of Japan' is fair because 照査技術者 is a nationally standardized role, but only two jurisdictions were sampled.",
+ "openQuestions": [
+  "Does Dessia's 'AI 2D Checker' (or any comparable commercial/OSS product) actually compare a dimension's displayed value against the drawn geometry, or is it BOM/title-block/format validation dressed as content checking? This is the highest-priority follow-up — a product-level teardown is needed before claiming an absolute void.",
+  "Is BIM (Revit/ArchiCAD) truly immune to the displayed-value-vs-geometry lie? Evidence split: one source says Revit blocks numeric dimension overrides, another (refuted 1-2) says 'Replace With Text' permits arbitrary numeric display. Resolve whether the same DIMLFAC-class error is expressible in mainstream BIM authoring tools.",
+  "What do mechanical-CAD drawing checkers (SOLIDWORKS Design Checker, Creo ModelCHECK, NX Check-Mate, Inventor Design Checker) and dedicated GD&T validators actually verify? The 'they only check styles' characterization was NOT confirmed, so their coverage of dimension-value-vs-geometry, over-constraint, and missing/duplicate dimensions remains open — including how Model-Based Definition (MBD) has reshaped this demand.",
+  "Empirically, does a human 照査 reviewer reliably catch a DIMLFAC '910 m vs 910 mm' discrepancy in practice, or does the checklist's structural trust in printed dimension text let unit/scale errors slip through? No study or error-rate data was found; this is the practical measure of whether Japan's manual system actually plugs the hole."
+ ],
+ "refuted": [
+  {
+   "claim": "The mechanism by which this content-consistency checking is actually performed is '赤黄チェック' — a MANUAL proofreading method of marking up drawings, calculation sheets and quantity sheets to confirm their mutual (相互) consistency and flag errors for correction. This confirms Japan's 照査 fills the content-integrity gap with human labor and colored mark-ups, not with any automated/mechanical CAD-content inspection tool.",
+   "vote": "0-3",
+   "source": "https://www.e-nexco.co.jp/assets/pdf/bids/stipulation/design_review.pdf"
+  },
+  {
+   "claim": "Cross-drawing consistency (平面図・構造図・配筋図 etc. agreeing with each other) is an explicit, formal 照査 item — but it is a manual reviewer's cross-reference, with named sub-items like 一般平面図と縦断図 / 構造図と配筋図 / 本体と付属物の取り合い. This confirms cross-drawing consistency is a recognized need in Japanese practice, yet it is met only by human照査, not by any automated tool.",
+   "vote": "0-3",
+   "source": "https://www.pref.chiba.lg.jp/gikan/documents/shousachekku-r0301.pdf"
+  },
+  {
+   "claim": "The 照査 treats the drawing's printed dimensions as the ground truth for quantity checking: item 5-1 checks whether the numbers used in the quantity calculation match the drawing's dimensions — it never questions whether the drawing's dimension label matches the drawn geometry. This is exactly the gap the research targets: the printed dimension text is trusted as truth, not verified against the CAD lines.",
+   "vote": "1-2",
+   "source": "https://www.pref.chiba.lg.jp/gikan/documents/shousachekku-r0301.pdf"
+  },
+  {
+   "claim": "Revit allows a user to override a dimension's displayed value: via the 'Replace With Text' field a user can force an arbitrary numeric value to display, meaning a Revit (BIM) dimension's shown number can be made independent of the actual model geometry — the same 'displayed value != geometry' mismatch the user observed in DXF is achievable in BIM, refuting the idea that BIM makes it impossible.",
+   "vote": "1-2",
+   "source": "https://www.autodesk.com/support/technical/article/caas/sfdcarticles/sfdcarticles/How-to-override-a-dimension-value-with-a-numeric-value-in-Revit.html"
+  },
+  {
+   "claim": "The rules-based drawing checkers built into major mechanical CAD systems (SOLIDWORKS Design Checker, PTC Creo ModelCHECK, Siemens NX Check-Mate, Autodesk Inventor Design Checker) check dimension STYLES and format conditions — not whether a dimension's displayed value matches the actual geometry.",
+   "vote": "0-3",
+   "source": "https://www.colabsoftware.com/post/best-ai-tools-for-manufacturing-drawing-checks"
+  },
+  {
+   "claim": "Standard rules-based CAD checkers are limited to format/standards enforcement and cannot catch content/engineering-intent errors — reinforcing that the 'content correctness' layer is not covered by built-in CAD checkers.",
+   "vote": "0-3",
+   "source": "https://www.colabsoftware.com/post/best-ai-tools-for-manufacturing-drawing-checks"
+  },
+  {
+   "claim": "Dessia offers a shipping/operational 'AI-powered 2D Checker' library that automatically validates the CONTENT of native 2D CAD drawings (not merely file format), across six validation families including tag presence, grid alignment, BOM consistency, title block integrity, GD&T, and dimension chains.",
+   "vote": "1-2",
+   "source": "https://www.dessia.io/blog/ai-2d-drawing-verification"
+  }
+ ],
+ "unverified": [],
+ "sources": [
+  {
+   "url": "https://www.cadforum.cz/en/qaID.asp?tip=3832",
+   "quality": "secondary",
+   "angle": "core-claim-killer / CAD標準機能",
+   "claimCount": 4
+  },
+  {
+   "url": "https://ukcommunity.arkance.world/hc/en-us/articles/21550761199378-AutoCAD-Tip-Locating-Dimensions-that-have-been-overridden-as-text",
+   "quality": "blog",
+   "angle": "core-claim-killer / CAD標準機能",
+   "claimCount": 4
+  },
+  {
+   "url": "https://www.autodesk.com/support/technical/article/caas/sfdcarticles/sfdcarticles/Linear-dimensions-not-consistent-with-actual-length-of-line.html",
+   "quality": "primary",
+   "angle": "core-claim-killer / CAD標準機能",
+   "claimCount": 4
+  },
+  {
+   "url": "https://www.colabsoftware.com/post/best-ai-tools-for-manufacturing-drawing-checks",
+   "quality": "blog",
+   "angle": "core-claim-killer / CAD標準機能",
+   "claimCount": 4
+  },
+  {
+   "url": "https://www.dessia.io/blog/ai-2d-drawing-verification",
+   "quality": "blog",
+   "angle": "core-claim-killer / CAD標準機能",
+   "claimCount": 5
+  },
+  {
+   "url": "https://novedge.com/blogs/design-news/autocad-tip-control-displayed-dimension-units-with-dimlfac",
+   "quality": "blog",
+   "angle": "core-claim-killer / CAD標準機能",
+   "claimCount": 4
+  },
+  {
+   "url": "https://www.e-nexco.co.jp/assets/pdf/bids/stipulation/design_review.pdf",
+   "quality": "primary",
+   "angle": "日本 照査制度・電子納品 (practitioner/規制)",
+   "claimCount": 5
+  },
+  {
+   "url": "https://www.pref.chiba.lg.jp/gikan/documents/shousachekku-r0301.pdf",
+   "quality": "primary",
+   "angle": "日本 照査制度・電子納品 (practitioner/規制)",
+   "claimCount": 5
+  },
+  {
+   "url": "https://www.nilim.go.jp/lab/bcg/siryou/tnn/tnn0403pdf/ks0403015.pdf",
+   "quality": "primary",
+   "angle": "日本 照査制度・電子納品 (practitioner/規制)",
+   "claimCount": 4
+  },
+  {
+   "url": "https://support.ideatesoftware.com/blog/find-overridden-dimensions-in-revit-model",
+   "quality": "blog",
+   "angle": "3D/BIM 到達点と2D適用性 (technical)",
+   "claimCount": 4
+  },
+  {
+   "url": "https://www.autodesk.com/support/technical/article/caas/sfdcarticles/sfdcarticles/How-to-override-a-dimension-value-with-a-numeric-value-in-Revit.html",
+   "quality": "primary",
+   "angle": "3D/BIM 到達点と2D適用性 (technical)",
+   "claimCount": 3
+  },
+  {
+   "url": "https://www.solibri.com/articles/everything-you-need-to-know-about-information-delivery-specifications",
+   "quality": "secondary",
+   "angle": "3D/BIM 到達点と2D適用性 (technical)",
+   "claimCount": 4
+  },
+  {
+   "url": "https://arxiv.org/abs/2508.04002",
+   "quality": "primary",
+   "angle": "AI生成CAD検証・意味論的評価 (academic/recent)",
+   "claimCount": 4
+  },
+  {
+   "url": "https://arxiv.org/abs/2605.18430",
+   "quality": "primary",
+   "angle": "AI生成CAD検証・意味論的評価 (academic/recent)",
+   "claimCount": 3
+  },
+  {
+   "url": "https://arxiv.org/abs/2605.19717",
+   "quality": "primary",
+   "angle": "AI生成CAD検証・意味論的評価 (academic/recent)",
+   "claimCount": 4
+  },
+  {
+   "url": "https://arxiv.org/abs/2508.00843",
+   "quality": "primary",
+   "angle": "AI生成CAD検証・意味論的評価 (academic/recent)",
+   "claimCount": 3
+  },
+  {
+   "url": "https://arxiv.org/abs/2603.26512",
+   "quality": "primary",
+   "angle": "AI生成CAD検証・意味論的評価 (academic/recent)",
+   "claimCount": 4
+  },
+  {
+   "url": "https://www.colabsoftware.com/product/autoreview",
+   "quality": "blog",
+   "angle": "機械設計 検図自動化 / MBD (industry adoption)",
+   "claimCount": 5
+  },
+  {
+   "url": "https://knowledge.autodesk.com/support/autocad/troubleshooting/caas/sfdcarticles/sfdcarticles/Linear-dimensions-not-consistent-with-actual-length-of-line.html",
+   "quality": "primary",
+   "angle": "機械設計 検図自動化 / MBD (industry adoption)",
+   "claimCount": 4
+  },
+  {
+   "url": "https://nexcad.ai/",
+   "quality": "blog",
+   "angle": "機械設計 検図自動化 / MBD (industry adoption)",
+   "claimCount": 4
+  },
+  {
+   "url": "https://www.autodesk.com/blogs/design-and-manufacturing/model-based-definition-mbd-and-the-role-it-plays-in-modern-manufacturing/",
+   "quality": "blog",
+   "angle": "機械設計 検図自動化 / MBD (industry adoption)",
+   "claimCount": 5
+  }
+ ],
+ "stats": {
+  "angles": 5,
+  "sourcesFetched": 21,
+  "claimsExtracted": 86,
+  "claimsVerified": 25,
+  "confirmed": 18,
+  "killed": 7,
+  "unverified": 0,
+  "afterSynthesis": 6,
+  "urlDupes": 3,
+  "budgetDropped": 6,
+  "agentCalls": 103
+ }
+}
