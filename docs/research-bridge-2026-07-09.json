@@ -1,0 +1,306 @@
+{
+ "question": "日本の橋梁（道路橋）の点検・改修・維持管理における「図面作成の実務」を、AIで自動化できるかという観点から棚卸ししたい。2026年7月時点。\n\n背景: 建築意匠の2D図面（DXF）でAIの作図能力を測るベンチマークを自作し、「仕様が確定していれば作図に天井は無い／落ちるのはCADファイルの意味論と検査の欠如」という結果を得た。これを橋梁の維持管理に移せるかを判断したい。友人が橋の改修・管理を仕事にしている。\n\n知りたいのは以下6点:\n\n(1) 図面の形式とデータ交換。\n  - 国土交通省の電子納品において、CADデータの納品形式は本当に SXF（P21 / SFC）が標準か。現行の「CAD製図基準」の版と適用範囲（直轄／都道府県／市町村でどう違うか）。\n  - 実務の運用実態: 作業は AutoCAD/DWG や JW_CAD で行い、納品時だけ SXF に変換するのか。それとも SXF ネイティブで作業するのか。\n  - SXF を読み書きできるソフトウェア/ライブラリの状況。特に **オープンソース、Python から扱えるものが存在するか**（ezdxf は DXF のみ）。SXF Ver.3.1 の仕様は公開されているか、実装の難易度は。\n  - BIM/CIM の原則適用（国交省直轄）が2D図面の需要にどう影響しているか。2D図面は減るのか、当面残るのか。\n\n(2) 「作法」の成文化と機械チェックの現状。\n  - CAD製図基準のレイヤ名規約（責任主体・図面オブジェクトの命名規則）は具体的にどうなっているか。\n  - 国交省が配布している「電子納品チェックシステム」等のツールは実在するか。**それは何をチェックしているのか**（ファイル名・フォルダ構成・レイヤ名などの形式か、それとも図面内容の整合性まで見るのか）。\n  - 「寸法値が実寸と違う」「図面と数量表が食い違う」といった**内容の誤り**を検出する仕組みは存在するか。存在しないなら、実務ではどう担保しているか（人手の照査、照査技術者制度など）。\n\n(3) 定期点検の制度と、そこで作られる図面・調書。\n  - 道路橋定期点検要領の現行版（5年に1回・近接目視・判定区分I〜IVという理解は正しいか）。市町村管理橋の点検実施率と、点検を担う主体。\n  - 点検で作成される成果物の様式: 点検調書、損傷図（損傷展開図）、写真台帳。**損傷図の作図はどの程度様式化・定型化されているか**。手描き/CAD/専用ソフトのどれが主流か。\n  - 「損傷図の作成」「数量拾い」「補修設計図の作成」のうち、実務で最も工数を食っているのはどれか。\n\n(4) 正解データの入手性（ベンチマークを作れるか）。\n  - 橋梁の一般図・構造図・損傷図の**公開データ**は存在するか（国交省の公開CIMモデル、道路橋データベース、自治体のオープンデータ、点検調書の公開）。\n  - 建築意匠では「作図注記つきの正解データが手に入らない」ことがベンチマーク不在の主因だった。橋梁ではどうか。\n\n(5) 競合と既存プレイヤー。\n  - 橋梁点検DX/維持管理DXの主要プレイヤー（大手建設コンサル、点検会社、ドローン点検系、AI損傷検出系）。それぞれ**作図まで踏み込んでいるか、損傷「検出」で止まっているか**。\n  - 「点検写真→損傷図の自動作図」「損傷図→数量自動算出」「補修設計図の自動生成」を謳う製品は実在するか。価格帯と実力。\n  - 自治体（特に市町村）向けの橋梁維持管理SaaSの状況。\n\n(6) 自治体GovTech公募での扱い。\n  - 橋梁点検・維持管理をテーマにした自治体の課題公募・実証事業の実績（Urban Innovation Japan 等）。\n  - 一人会社／小規模事業者が入り込める余地はあるか。\n\n最終的に判定してほしいこと:\n「橋梁維持管理の図面作成」は、(a) 仕様が既に世界の側にある（既存図面＋点検結果）ためAIに向いているのか、(b) それとも建築意匠と同じかそれ以上に暗黙知が支配するのか。\nまた「形式チェック（電子納品）は既にコモディティだが、内容の正しさは誰も見ていない」という仮説は正しいか。正しければ、そこが空席か、それとも人手の照査制度で埋まっていて商機がないのか。",
+ "summary": "For the electronic-delivery / format layer, the answer is firmly \"(a) the spec is already on the world's side.\" 2D CAD delivery is standardized on SXF (P21); layer names are a codified, machine-readable code system (責任主体 + 図面オブジェクト such as TTL/BGD/STR); and detailed-design plan/section drawings must be drawn at true scale (実寸) precisely so that construction-stage quantities can be picked directly from the CAD geometry — i.e., dimension-value-equals-reality is a codified system premise. Critically, MLIT's own 電子納品チェックシステム is a live, actively-maintained tool (bug-fixed through mid-2026) that checks only format (file/folder names, management XML, layer names) and explicitly states it \"cannot check the content of deliverables such as reports or CAD drawings\" — so the hypothesis \"form-checking is commoditized, but content-correctness is machine-unchecked\" is directly confirmed for its first half by the primary source. Whether that content gap is a genuine business opening or is already filled by the human 照査 (checking-engineer) system could NOT be verified, and no surviving evidence covered public benchmark data, the most work-intensive task, the degree of 損傷図 standardization, or GovTech public-tender traction. On tooling, there is no ezdxf-equivalent Python SXF library; the public spec (SXF Ver.3.1, 2009) plus a free, source-included C/C++ OCF common library and a C#/MIT SFC read-write library (SfcHelper) exist, so an SXF reader/writer is buildable but not available off-the-shelf in Python.",
+ "findings": [
+  {
+   "claim": "The 2D CAD electronic-delivery standard for MLIT road/civil works is SXF (P21). SXF has two physical formats: the STEP-conforming P21 file (.p21, ISO 10303-21 / AP202) designated as the formal file at electronic delivery, and the Feature-Comment .sfc file that supplements exchange. MLIT (NILIM/cals-ed) positions SXF as the national CAD data exchange standard; direct-control requires SXF Ver.2.0 Level 2 or higher, and from H28.3 the compressed P2Z format was added.",
+   "confidence": "high",
+   "vote": "merged 4/8/14/16, all 3-0",
+   "sources": [
+    "http://www.ocf.or.jp/sxf/pdf/referencebook/2017/reference_book_02_20170613.pdf",
+    "https://ocf.or.jp/pdf/file/P21lib_kinou_siyou1505.pdf",
+    "https://www.cals-ed.go.jp/sxf_ver3-1_specification_draft/",
+    "https://ocf.or.jp/pdf/file/SFClib_kinou_siyou1505.pdf"
+   ],
+   "evidence": "OCF reference book states verbatim: CAD data file format is in principle SXF(P21), Ver.2.0 Level 2 or higher, and from the H28.3 CAD standard the compressed SXF(P2Z) was added. P21 is defined as 'STEP-rule-conforming, internationally valid (the formal file at electronic delivery)'; SFC = Scadec Feature Comment file. cals-ed explicitly labels it 'CADデータ交換標準SXF関連'. Corroborated by MLIT/NILIM portal (SXF P21 mandated for delivery) and academic work. All primary .go.jp / OCF sources, unanimous."
+  },
+  {
+   "claim": "The official MLIT electronic-delivery standards portal (cals-ed.go.jp) is live and maintained. The current CAD製図基準 is R7.12 (Dec 2025, general civil); the 電気通信設備編 and 機械設備工事編 are R8.2 (Feb 2026), applying to contracts from 2026-04-01; H29.3 is a prior version. The 電子納品チェックシステム is a current, actively maintained tool with 2026 update notices (4/1, 5/29, 6/15) and civil-version bug fixes through Ver.21.0.2.",
+   "confidence": "high",
+   "vote": "merged 2/3, all 3-0",
+   "sources": [
+    "https://www.cals-ed.go.jp/",
+    "https://www.cals-ed.go.jp/checksys-release-20260615/"
+   ],
+   "evidence": "cals-ed.go.jp/cri_point/ lists R7.12 (general civil) and R8.2 (電通/機械, effective for contracts from 2026-04-01). The check-system download page and three 2026 update notices are confirmed; the 20260615 release documents Ver.21.0.1->21.0.2, a bug fix for a spurious warning on certain 施工履歴データ files. H29.3 confirmed as prior version. Time-sensitive: versions keep incrementing. Minor unconfirmed sub-detail: a coexisting 'H28.3' CAD製図基準 version."
+  },
+  {
+   "claim": "MLIT's 電子納品チェックシステム checks only FORMAT — CD-R contents against the delivery requirements/standards (management XML required fields/character rules, file names, folder names/structure, CAD layer names, PDF properties, paper size/line type/color/scale) — and explicitly CANNOT check the content of deliverables such as reports or CAD drawings. It therefore does not validate whether a dimension value matches true scale or whether a drawing agrees with the quantity table; content-correctness is outside its scope.",
+   "confidence": "high",
+   "vote": "merged 0/1/3, all 3-0",
+   "sources": [
+    "https://www.cals-ed.go.jp/ed_what/"
+   ],
+   "evidence": "Primary source states verbatim: '電子納品チェックシステムは、CD-Rに格納された電子成果品が電子納品要領・基準に整合しているかの確認作業を支援するために提供するシステムです' and 'ただし、本システムでは、成果品（報告書やCAD図面など）の内容を確認することはできません。' The same page enumerates only formal/structural checks. Corroborated by NILIM, MAFF, and prefectural CALS pages; even commercial CAD-check software only verifies style, never whether a value is真値 or matches the数量表. This is the direct confirmation of the first half of the user's hypothesis."
+  },
+  {
+   "claim": "The CAD製図基準 layer-naming rule is a codified, machine-readable code system: layer names are structured 責任主体 + 図面オブジェクト + 作図要素 + ユーザ定義領域. The 図面オブジェクト field is a fixed 10-item classification — TTL(図枠)/BGD(背景)/BMK(基準)/STR(主構造物)/BYP(副構造物)/MTR(材料表)/DCR(説明・着色)/DOC(文章)/SUV(測量)/ORD(発注用) — and 責任主体 codes are S(測量)/D(設計)/C(施工)/M(維持管理). The 'form/作法' is thus already formalized into machine-parseable symbols.",
+   "confidence": "high",
+   "vote": "3-0",
+   "sources": [
+    "http://www.ocf.or.jp/sxf/pdf/referencebook/2017/reference_book_02_20170613.pdf"
+   ],
+   "evidence": "OCF reference book states all 10 codes verbatim ('図枠：TTL...発注用：ORD の10項目に分類'). The 4-part layer-name structure and 責任主体 codes trace to MLIT CAD製図基準(案) (nilim.go.jp) and JSCE. Minor nuance: 'fixed' slightly overstates — the standard permits STRn/BYPn sub-notation and extension — but the base 10-item classification is genuine and machine-readable."
+  },
+  {
+   "claim": "Detailed-design plan (平面図) and cross-section (横断図) drawings must, in principle, be created at true scale (実寸) using 部分図, because at the construction stage un-annotated (旗上げ-less) dimensions are read (数量拾い) directly from the CAD data. This makes CAD geometry a first-class quantity source and codifies dimension-value = reality as a system premise — but nothing enforces or auto-checks this correspondence.",
+   "confidence": "high",
+   "vote": "3-0",
+   "sources": [
+    "http://www.ocf.or.jp/sxf/pdf/referencebook/2017/reference_book_02_20170613.pdf"
+   ],
+   "evidence": "Verbatim: '施工段階では、旗上げのない寸法は CAD データより拾い出すことが多いことから、詳細設計で作成する平面図及び横断図は、部分図を利用して実寸でデータを作成することを原則とします。' Identical sentence appears in Tokyo Metropolitan Govt CAD製図基準・同解説 (令和6年4月/2024), so in force in 2026. Caveat: annotated (旗上げ) values take priority over geometry, so geometry is the source specifically for un-annotated dimensions — a slight qualification, not a contradiction."
+  },
+  {
+   "claim": "Standards diverge between direct-control and local governments. Direct-control MLIT covers 34 工種 and recommends SXF(P21). A simplified '#SXFデータ作成要領' aimed at local governments targets SXF(SFC), follows the H20.5 CAD製図基準(案), allows Japanese-character layer names, and permits CSV (not only XML) for drawing management. However, municipal practice is heterogeneous: major prefectures (Tokyo R6, Tochigi R6) instead 準用 the national CAD製図基準 (H29.3) with local edits rather than the voluntary simplified requirement.",
+   "confidence": "medium",
+   "vote": "2-1 (one dissent; municipal adoption is heterogeneous, not uniform)",
+   "sources": [
+    "http://www.ocf.or.jp/sxf/pdf/referencebook/2017/reference_book_02_20170613.pdf"
+   ],
+   "evidence": "OCF reference book Section 2.3 / Table 2-17 confirm every specific: 34 工種 direct-control, SXF(P21) recommended direct-control vs SXF(SFC) municipal, H20.5踏襲, Japanese-character layer names allowed, CSV allowed. Split vote reflects the overreach in 'municipalities use it' — in practice large prefectures adopt the national standard with edits, so local practice varies. The divergence itself is real; the uniformity is not."
+  },
+  {
+   "claim": "There is NO ezdxf-equivalent Python-native SXF library. What exists: (1) the public spec SXF Ver.3.1仕様書 第2版 (June 2009, ~4.8MB LZH, developer-targeted) is downloadable from cals-ed.go.jp; (2) the official OCF SXF共通ライブラリ Ver.3.xx is free with full source included, C/C++ (Visual C++ 2008, Windows DLLs, 64-bit by rebuild), license-gated by application but usable — even commercially — as a basis for building a reader/writer (not OSI open source); (3) SfcHelper (github.com/JinkiKeikaku/SfcHelper) is MIT-licensed and reads/writes SXF SFC, but is C#, SFC-only, and last updated 2022. Python users must FFI-wrap the C library or reimplement.",
+   "confidence": "high",
+   "vote": "merged 9/10/11/12/13/15, all 3-0",
+   "sources": [
+    "https://www.cals-ed.go.jp/sxf_ver3-1_specification_draft/",
+    "https://ocf.or.jp/about/download/sxflibrary/",
+    "https://github.com/JinkiKeikaku/SfcHelper",
+    "https://ocf.or.jp/pdf/file/SFClib_kinou_siyou1505.pdf"
+   ],
+   "evidence": "cals-ed page confirms the SXF Ver.3.1 spec 第2版 (H21.6, 4837KB, LZH, 開発者向け). OCF page confirms '共通ライブラリVer.3.xxは無償提供' with '配布ファイルにはソースコード一式が含まれます', built in VS2008, DLLs, 64-bit via rebuild, no Python. The license (第2条) expressly permits building and even commercially distributing derivative software; only reselling the library itself is barred (第5条). SfcHelper GitHub API confirms MIT + C# + reads/writes SFC. PyPI/GitHub searches for a Python SXF/P21/SFC parser returned nothing relevant. Note: the canonical OCF library is source-included, so 'binary-only' framing is imprecise; but it is not OSI open source and not Python."
+  },
+  {
+   "claim": "The bridge periodic-inspection regime the user described is current and correct. The 道路橋定期点検要領 current version is 令和6年3月 (March 2024), MLIT Road Bureau; the basic inspection interval is once every 5 years (shorter as needed); the basic method is 近接目視; and soundness diagnosis uses exactly four categories I–IV (I 健全 / II 予防保全段階 / III 早期措置段階 / IV 緊急措置段階), applied at both member (部材) and facility (道路橋毎) units.",
+   "confidence": "high",
+   "vote": "merged 17/18, all 3-0",
+   "sources": [
+    "https://www.mlit.go.jp/road/sisaku/yobohozen/tenken/yobo7_6.pdf"
+   ],
+   "evidence": "pdftotext of the cited MLIT PDF confirms '令和6年3月', '道路局', '点検間隔は５年に１回の頻度を基本とする', 近接目視 as basic method, and the four categories I–IV verbatim. No newer (2025/2026) version exists as of July 2026. Note: I–IV is applied per-member AND per-facility, so 'per facility unit' is accurate but not the full picture."
+  },
+  {
+   "claim": "In the bridge-inspection domain, vendors work in a 2D general-CAD base and emit SXF for delivery. Forum8's bridge-inspection support system auto-generates general drawings, member/element diagrams, and damage diagrams, allows editing them on general CAD, and outputs to DXF, DWG, SXF, SFC, JWW, JWC; it carries SXF3.1 and 電子納品 support. This confirms SXF/SFC is the actual delivery format in bridge maintenance and that drawing generation/export is already partly a solved vendor problem.",
+   "confidence": "high",
+   "vote": "3-0",
+   "sources": [
+    "https://www.forum8.co.jp/product/uc1/ijikanri/tenken.htm"
+   ],
+   "evidence": "Forum8 page states '図面は直接印刷の他、DXF、DWG、SXF、SFC、JWW、JWC等のファイルへ出力可能' and '2次元汎用CADベースのため、生成された図面を汎用CAD上で修正可能'. Consistent with the MLIT-mandated SXF delivery standard, so not an isolated quirk. Caveats: 'vendors work in 2D CAD base' mildly over-generalizes from one product; and note that two adjacent claims about this product were REFUTED — one asserting the damage diagram is purely hand-drawn with only a support chatbot, and one pinning the current inspection guideline to H31.3 (the current version is R6.3/2024). So the degree of automation vs hand-drawing of the 損傷図 itself remains unresolved."
+  }
+ ],
+ "caveats": "Strongest, most primary-backed area is the electronic-delivery / format layer (mostly .go.jp — MLIT/NILIM/cals-ed — and OCF, the authoritative SXF body). The user's hypothesis is confirmed only for its first half: the check system checks format only and explicitly cannot check content. The second half (\"no one sees content correctness\") is NOT established — no surviving evidence addressed whether the human 照査 (checking-engineer / 照査技術者) system already fills that gap, which is the crux of whether a business opening exists. Several load-bearing questions produced NO surviving claims: public 正解データ availability for a benchmark (Q4), which of 損傷図作成 / 数量拾い / 補修設計図 is most work-intensive (Q3), the degree of standardization vs 暗黙知 of the 損傷図 and 補修設計図, and GovTech public-tender / solo-operator traction (Q6). Two Forum8 claims and one 損傷図-standardization claim were refuted, so the automation/hand-drawing balance of the damage diagram is unresolved (a refuted claim only fails to survive; do not read its negation as established). Split vote (2-1) on direct-control vs municipal divergence: the divergence is real but municipal practice is heterogeneous, not uniform adoption of the simplified requirement. Claim 6's mention of a coexisting H28.3 CAD製図基準 version could not be independently confirmed. Time-sensitivity: standard versions move (CAD製図基準 R7.12 Dec 2025, R8.2 Feb 2026; check system Ver.21.0.2 Jun 2026), but the underlying SXF spec is old (Ver.3.1, 2009) and stable; assessment valid as of July 2026. The OCF SXF common-library license terms cited are 2012/2015 but distribution is ongoing.",
+ "openQuestions": [
+  "Is the content-correctness gap (dimensions vs reality, drawing vs quantity table) actually unfilled, or already covered by the human 照査技術者 / 照査制度? The entire商機 judgment hinges on this and it was not verified.",
+  "Do public 正解データ exist (bridge 一般図 / 構造図 / 損傷図 / 点検調書 with drawing annotations, e.g. MLIT open CIM models, 道路橋データベース, municipal open data) sufficient to build a benchmark the way the building-design benchmark could not be built?",
+  "Which task actually consumes the most工数 — 損傷図作成, 数量拾い, or 補修設計図作成 — and how much of the 損傷図 / 補修設計 is 暗黙知-driven vs geometrically determined? The domain-specific automatability of the damage-diagram step remains unresolved (one relevant claim was refuted).",
+  "In the bridge maintenance / inspection-DX competitor landscape, do AI損傷検出 or drone-inspection players stop at 'detection' or push into 作図 / 数量算出 / 補修設計図生成, and is there any GovTech public-tender (Urban Innovation Japan 等) precedent a one-person company could enter?"
+ ],
+ "refuted": [
+  {
+   "claim": "The check system verifies only formal compliance — file names, folder names, and folder structure — not drawing content.",
+   "vote": "0-3",
+   "source": "https://www.cals-ed.go.jp/ed_what/"
+  },
+  {
+   "claim": "The only official SXF read/write implementation (the OCF 共通ライブラリ) is distributed as a compiled Windows DLL/LIB (common_lib_AP202.dll / .lib) developed in Visual C++ 2008 SP1 for Windows XP/Vista/7 — i.e., a C/C++ Windows binary, not a Python or open-source library. This bears directly on the research question of whether a Python-usable/open-source SXF library exists: the canonical reference implementation is a Windows C++ DLL.",
+   "vote": "1-2",
+   "source": "https://ocf.or.jp/pdf/file/P21lib_kinou_siyou1505.pdf"
+  },
+  {
+   "claim": "There is NO legally-defined format, content, or item set for inspection records; the road administrator decides what to record and how. This means damage diagrams / inspection deliverables are NOT nationally standardized by law — directly supporting the hypothesis that the 'form/作法' of the output is loosely codified and varies by administrator (a key obstacle for uniform benchmark data).",
+   "vote": "0-3",
+   "source": "https://www.mlit.go.jp/road/sisaku/yobohozen/tenken/yobo7_6.pdf"
+  },
+  {
+   "claim": "The product conforms to '橋梁定期点検要領（平成31年3月）国土交通省 道路局 国道・防災課', confirming the current road-bridge periodic inspection guideline version is March 2019 (Heisei 31); it also references the prior 平成26年6月 and 平成16年3月(案) versions and outputs the standardized 点検調書 その1〜その11 forms.",
+   "vote": "0-3",
+   "source": "https://www.forum8.co.jp/product/uc1/ijikanri/tenken.htm"
+  },
+  {
+   "claim": "The damage diagram (損傷図) itself is drawn by the human inspector in a manual sketch-style workflow, not auto-generated — the tool auto-draws general/member/element diagrams and provides drawing commands, but damage shapes are hand-drawn; the only 'AI' feature (F8-AI UCサポート) is a support/help chatbot for operation and calculation-theory questions, NOT automatic damage detection or automatic damage-figure generation. No drone or photo-to-figure automation is offered.",
+   "vote": "0-3",
+   "source": "https://www.forum8.co.jp/product/uc1/ijikanri/tenken.htm"
+  }
+ ],
+ "unverified": [],
+ "sources": [
+  {
+   "url": "https://www.cals-ed.go.jp/ed_what/",
+   "quality": "primary",
+   "angle": "一次規格・電子納品の標準とレイヤ規約",
+   "claimCount": 5
+  },
+  {
+   "url": "https://www.cals-ed.go.jp/",
+   "quality": "primary",
+   "angle": "一次規格・電子納品の標準とレイヤ規約",
+   "claimCount": 4
+  },
+  {
+   "url": "http://www.ocf.or.jp/sxf/pdf/referencebook/2017/reference_book_02_20170613.pdf",
+   "quality": "primary",
+   "angle": "一次規格・電子納品の標準とレイヤ規約",
+   "claimCount": 5
+  },
+  {
+   "url": "https://ocf.or.jp/pdf/file/P21lib_kinou_siyou1505.pdf",
+   "quality": "primary",
+   "angle": "一次規格・電子納品の標準とレイヤ規約",
+   "claimCount": 5
+  },
+  {
+   "url": "https://github.com/JinkiKeikaku/SfcHelper",
+   "quality": "primary",
+   "angle": "SXF実装可能性（OSS・Python・仕様公開）",
+   "claimCount": 5
+  },
+  {
+   "url": "https://ocf.or.jp/about/download/sxflibrary/",
+   "quality": "primary",
+   "angle": "SXF実装可能性（OSS・Python・仕様公開）",
+   "claimCount": 5
+  },
+  {
+   "url": "https://www.cals-ed.go.jp/sxf_ver3-1_specification_draft/",
+   "quality": "primary",
+   "angle": "SXF実装可能性（OSS・Python・仕様公開）",
+   "claimCount": 4
+  },
+  {
+   "url": "https://ocf.or.jp/pdf/file/SFClib_kinou_siyou1505.pdf",
+   "quality": "primary",
+   "angle": "SXF実装可能性（OSS・Python・仕様公開）",
+   "claimCount": 4
+  },
+  {
+   "url": "https://qiita.com/kamaboco/items/08d1e7c51d8847e5fb95",
+   "quality": "blog",
+   "angle": "SXF実装可能性（OSS・Python・仕様公開）",
+   "claimCount": 5
+  },
+  {
+   "url": "https://www.leon-tec.co.jp/blog/2351/",
+   "quality": "secondary",
+   "angle": "SXF実装可能性（OSS・Python・仕様公開）",
+   "claimCount": 3
+  },
+  {
+   "url": "https://www.mlit.go.jp/road/sisaku/yobohozen/tenken/yobo7_6.pdf",
+   "quality": "primary",
+   "angle": "定期点検実務・損傷図・工数の実態",
+   "claimCount": 5
+  },
+  {
+   "url": "https://www.agencysoft.co.jp/bridge/",
+   "quality": "blog",
+   "angle": "定期点検実務・損傷図・工数の実態",
+   "claimCount": 5
+  },
+  {
+   "url": "https://www.jip-ts.co.jp/support/kyoshiro/faq/001560.html",
+   "quality": "secondary",
+   "angle": "定期点検実務・損傷図・工数の実態",
+   "claimCount": 4
+  },
+  {
+   "url": "https://tatelog.jp/d379dfef285f4264b9a5bcdebd93412a",
+   "quality": "unreliable",
+   "angle": "定期点検実務・損傷図・工数の実態",
+   "claimCount": 0
+  },
+  {
+   "url": "https://www.forum8.co.jp/product/uc1/ijikanri/tenken.htm",
+   "quality": "primary",
+   "angle": "定期点検実務・損傷図・工数の実態",
+   "claimCount": 5
+  },
+  {
+   "url": "https://material-r.co.jp/bridge-inspection/service-inspection12/",
+   "quality": "blog",
+   "angle": "定期点検実務・損傷図・工数の実態",
+   "claimCount": 4
+  },
+  {
+   "url": "https://www.jbec.or.jp/database/data/",
+   "quality": "primary",
+   "angle": "正解データの入手性（ベンチマーク可否）",
+   "claimCount": 5
+  },
+  {
+   "url": "https://road-structures-map.mlit.go.jp/",
+   "quality": "primary",
+   "angle": "正解データの入手性（ベンチマーク可否）",
+   "claimCount": 4
+  },
+  {
+   "url": "https://www.jbec.or.jp/database/about/",
+   "quality": "primary",
+   "angle": "正解データの入手性（ベンチマーク可否）",
+   "claimCount": 4
+  },
+  {
+   "url": "https://www.mlit.go.jp/report/press/road01_hh_001569.html",
+   "quality": "primary",
+   "angle": "正解データの入手性（ベンチマーク可否）",
+   "claimCount": 4
+  },
+  {
+   "url": "https://www.nt-geotecs.com/products/3d/product_sightfusion_2.html",
+   "quality": "secondary",
+   "angle": "競合の到達点（検出止まりか作図か）",
+   "claimCount": 5
+  },
+  {
+   "url": "https://www.fujifilm.com/jp/ja/business/inspection/infraservice/hibimikke",
+   "quality": "primary",
+   "angle": "競合の到達点（検出止まりか作図か）",
+   "claimCount": 5
+  },
+  {
+   "url": "https://urban-innovation-japan.com/project/fujieda-city/2020-5/bridge_inspection/",
+   "quality": "primary",
+   "angle": "GovTech参入余地と内容照査の空席仮説",
+   "claimCount": 5
+  },
+  {
+   "url": "https://digital-construction.jp/tool/3158",
+   "quality": "secondary",
+   "angle": "GovTech参入余地と内容照査の空席仮説",
+   "claimCount": 5
+  },
+  {
+   "url": "https://www.global.toshiba/jp/products-solutions/public-ict/icon.html",
+   "quality": "primary",
+   "angle": "GovTech参入余地と内容照査の空席仮説",
+   "claimCount": 5
+  },
+  {
+   "url": "https://www.nilim.go.jp/lab/peg/img/file1833.pdf",
+   "quality": "primary",
+   "angle": "GovTech参入余地と内容照査の空席仮説",
+   "claimCount": 5
+  },
+  {
+   "url": "https://xtech.nikkei.com/atcl/nxt/column/18/00107/00245/",
+   "quality": "secondary",
+   "angle": "GovTech参入余地と内容照査の空席仮説",
+   "claimCount": 4
+  }
+ ],
+ "stats": {
+  "angles": 6,
+  "sourcesFetched": 27,
+  "claimsExtracted": 119,
+  "claimsVerified": 25,
+  "confirmed": 20,
+  "killed": 5,
+  "unverified": 0,
+  "afterSynthesis": 9,
+  "urlDupes": 2,
+  "budgetDropped": 7,
+  "agentCalls": 110
+ }
+}
