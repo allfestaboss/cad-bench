@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+
+# 生成物（run.sh / adversarial.py で再生成できる）
+out/

@@ -1,0 +1,129 @@
+{
+  "id": "T004",
+  "title": "木造2階建て 1階平面図（法規適合を自分で満たす）",
+  "unit": "mm",
+  "scale": "1:100",
+  "module": 910,
+  "floor_height_mm": 2900,
+  "habitable_rooms": ["和室", "LDK"],
+
+  "note": [
+    "建物の殻（通り芯・壁・室）は T003 と同じで固定。**法規が支配する部分だけが自由**。",
+    "自由に決めるもの: (1) 階段の段数・蹴上・踏面・幅・段板の配置、(2) 居室の窓の幅と高さ。",
+    "決めた値は建具表（schedule）として JSON で提出し、図面にもその通り作図すること。",
+    "建具表と図面が食い違えば、壁の被覆率が落ちて減点される（申告だけで嘘はつけない）。",
+    "位置の書き方の規則:",
+    "  ・'X3' のような通り芯符号は、その通り芯の座標を意味する。'Y3+455' は Y3 から北へ455mm。",
+    "  ・開口の 'center_of_room' は、その室の境界のうち その壁の芯線上に乗っている部分（共有辺）の中央に、幅 width で置く。",
+    "  ・開口の 'center_of_wall' は、その壁の中央に幅 width で置く。",
+    "北東の隅は45度の斜め外壁 W-D。"
+  ],
+
+  "code": {
+    "basis": "建築基準法。ただし **採光補正係数（令20条）を 1 と仮定した簡略モデル**。実務の判定には使えない。",
+    "stair": {"max_riser_mm": 230, "min_tread_mm": 150, "min_width_mm": 750, "source": "令23条（住宅の階段）"},
+    "daylight_ratio": 0.14285714285714285,
+    "daylight_source": "法28条1項（居室の採光）",
+    "ventilation_ratio": 0.05,
+    "ventilation_source": "法28条2項（居室の換気）",
+    "hint": "採光有効面積は 窓の幅×高さ の合計とする。換気は それに開放可能率を掛けたもの。"
+  },
+
+  "schedule_requirement": {
+    "path": "提出するDXFと同じ場所に <DXFのファイル名から拡張子を除いたもの>.schedule.json を置くこと",
+    "format": {
+      "stairs": {"risers": "段数(整数)", "riser_mm": "蹴上", "tread_mm": "踏面", "width_mm": "階段の幅"},
+      "openings": {"<開口ID>": {"room": "所属する居室名", "width_mm": 0, "height_mm": 0, "openable_ratio": 0.5}}
+    },
+    "note": "階段は STAIR レイヤに段板を作図する。段板の本数は 段数−1。段板の線分の長さが階段の幅になる。踊り場の端の線とささら（中央の線）は段板に数えない。"
+  },
+
+  "grid": {
+    "x": {"labels": ["X1","X2","X3","X4","X5","X6","X7","X8","X9","X10","X11"],
+          "coords": [0,910,1820,2730,3640,4550,5460,6370,7280,8190,9100]},
+    "y": {"labels": ["Y1","Y2","Y3","Y4","Y5","Y6","Y7","Y8","Y9","Y10"],
+          "coords": [0,910,1820,2730,3640,4550,5460,6370,7280,8190]}
+  },
+
+  "wall_thickness": 120,
+  "wall_alignment": "centered_on_grid",
+
+  "walls": [
+    {"id": "W-S", "kind": "exterior", "from": ["X1","Y1"],     "to": ["X11","Y1"]},
+    {"id": "W-E", "kind": "exterior", "from": ["X11","Y1"],    "to": ["X11","Y8"]},
+    {"id": "W-D", "kind": "exterior", "from": ["X11","Y8"],    "to": ["X9","Y10"]},
+    {"id": "W-N", "kind": "exterior", "from": ["X1","Y10"],    "to": ["X9","Y10"]},
+    {"id": "W-W", "kind": "exterior", "from": ["X1","Y1"],     "to": ["X1","Y10"]},
+    {"id": "I1", "kind": "interior", "from": ["X3","Y1"],      "to": ["X3","Y6"]},
+    {"id": "I2", "kind": "interior", "from": ["X5","Y1"],      "to": ["X5","Y6"]},
+    {"id": "I3", "kind": "interior", "from": ["X7","Y1"],      "to": ["X7","Y6"]},
+    {"id": "I4", "kind": "interior", "from": ["X1","Y3"],      "to": ["X7","Y3"]},
+    {"id": "I5", "kind": "interior", "from": ["X1","Y3+455"],  "to": ["X3","Y3+455"]},
+    {"id": "I6", "kind": "interior", "from": ["X3","Y4"],      "to": ["X5","Y4"]},
+    {"id": "I7", "kind": "interior", "from": ["X1","Y6"],      "to": ["X11","Y6"]}
+  ],
+
+  "rooms": [
+    {"name": "玄関",     "poly": [["X1","Y1"],["X3","Y1"],["X3","Y3"],["X1","Y3"]]},
+    {"name": "収納",     "poly": [["X1","Y3"],["X3","Y3"],["X3","Y3+455"],["X1","Y3+455"]]},
+    {"name": "洗面脱衣", "poly": [["X1","Y3+455"],["X3","Y3+455"],["X3","Y6"],["X1","Y6"]]},
+    {"name": "ホール",   "poly": [["X3","Y1"],["X5","Y1"],["X5","Y3"],["X3","Y3"]]},
+    {"name": "便所",     "poly": [["X3","Y3"],["X5","Y3"],["X5","Y4"],["X3","Y4"]]},
+    {"name": "浴室",     "poly": [["X3","Y4"],["X5","Y4"],["X5","Y6"],["X3","Y6"]]},
+    {"name": "階段",     "poly": [["X5","Y1"],["X7","Y1"],["X7","Y3"],["X5","Y3"]]},
+    {"name": "納戸",     "poly": [["X5","Y3"],["X7","Y3"],["X7","Y6"],["X5","Y6"]]},
+    {"name": "和室",     "poly": [["X7","Y1"],["X11","Y1"],["X11","Y6"],["X7","Y6"]]},
+    {"name": "LDK",      "poly": [["X1","Y6"],["X11","Y6"],["X11","Y8"],["X9","Y10"],["X1","Y10"]]}
+  ],
+
+  "openings": [
+    {"id": "O1", "type": "door",   "wall": "W-S", "center_of_room": "玄関",  "width": 910, "desc": "玄関ドア（固定）"},
+    {"id": "O2", "type": "window", "wall": "W-S", "center_of_room": "和室",  "desc": "和室の南窓（幅・高さは自由）"},
+    {"id": "O3", "type": "window", "wall": "W-E", "center_of_room": "和室",  "desc": "和室の東窓（幅・高さは自由）"},
+    {"id": "O4", "type": "window", "wall": "W-D", "center_of_wall": true, "belongs_to": "LDK", "desc": "LDKの窓（45度の斜め壁。幅・高さは自由）"},
+    {"id": "O5", "type": "window", "wall": "W-N", "center_of_room": "LDK",   "desc": "LDKの北窓（幅・高さは自由）"},
+    {"id": "O6", "type": "door",   "wall": "I1",  "center_of_room": "玄関",  "width": 910, "desc": "玄関→ホール（固定）"},
+    {"id": "O7", "type": "door",   "wall": "I7",  "center_of_room": "洗面脱衣", "width": 910, "desc": "洗面脱衣→LDK（固定）"},
+    {"id": "O8", "type": "door",   "wall": "I7",  "center_of_room": "和室",  "width": 910, "desc": "和室→LDK（固定）"}
+  ],
+  "openings_requirement": {
+    "door_symbol": true, "window_symbol": true,
+    "note": "ドアは戸と開き勝手の弧を、窓はガラス線（壁と平行、開口幅の8割以上）を作図すること。小口だけでは不可。"
+  },
+
+  "stair_layer": "STAIR",
+
+  "annotations": {
+    "room_area": {"layer": "ROOM", "decimals": 2,
+      "requirement": "各室の中に、その室の面積を m²・小数2桁で記入。壁芯で囲まれた多角形の面積。自分で計算すること。"},
+    "total_area": {"layer": "TEXT", "decimals": 2,
+      "requirement": "TEXTレイヤに1階の床面積の合計を m²・小数2桁で記入。"},
+    "opening_marks": {"layer": "OPENING", "tolerance_mm": 1500,
+      "map": {"O1": "D1", "O6": "D2", "O7": "D3", "O8": "D4", "O2": "W1", "O3": "W2", "O4": "W3", "O5": "W4"},
+      "requirement": "各開口の近く（開口の矩形から1500mm以内）に建具符号を OPENING レイヤの文字で記入。"}
+  },
+
+  "dimensions": {
+    "requirement": "実CADの寸法エンティティ(DIMENSION)で作図すること。線分と文字による模倣は不可。",
+    "chains": [
+      {"id": "D-S2", "direction": "x", "at": 0, "derive_from_openings": "W-S", "overall": null,
+       "base": -600, "overall_base": null,
+       "note": "南面の開口位置の寸法。station は 0、W-S 上の各開口の両端、壁の全長。**自分が決めた窓幅から導出**すること。"},
+      {"id": "D-S1", "direction": "x", "at": 0, "stations": [0,910,1820,2730,3640,4550,5460,6370,7280,8190,9100],
+       "overall": 9100, "base": -1600, "overall_base": -2600},
+      {"id": "D-W",  "direction": "y", "at": 0, "stations": [0,910,1820,2730,3640,4550,5460,6370,7280,8190],
+       "overall": 8190, "base": -600, "overall_base": -1600},
+      {"id": "D-E",  "direction": "y", "at": 9100, "stations": [0,910,1820,2730,3640,4550,5460,6370],
+       "overall": 6370, "base": 9700, "overall_base": 10700}
+    ]
+  },
+
+  "layers": {
+    "required": ["GRID", "WALL", "OPENING", "DIM", "ROOM", "TEXT", "STAIR"],
+    "policy": "各エンティティは用途どおりのレイヤに置くこと。0レイヤへの直置きは不可。"
+  },
+
+  "grid_labels": {"requirement": "通り芯の端部に X1..X11 / Y1..Y10 の符号を記入。GRIDレイヤ。"},
+  "room_labels": {"requirement": "各室の中に室名を記入。ROOMレイヤ。"},
+  "output": {"format": "DXF", "dxf_version": "AC1015_or_later", "model_space_units": "mm_1to1"}
+}

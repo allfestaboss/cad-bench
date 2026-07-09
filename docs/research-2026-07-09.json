@@ -1,0 +1,302 @@
+{
+ "question": "LLM/生成AIで「建築・意匠の2D図面」（DXF/JW_CAD形式の平面図・立面図・断面図）をどこまで自動生成できるか、2026年7月時点の最先端を棚卸ししたい。\n\n知りたいのは以下4点:\n\n(1) 技術的アプローチの現状と到達点・限界。具体的には —\n  - CAD-as-code（LLMにezdxf / CadQuery / build123d / OpenSCAD のコードを書かせる）\n  - LLMに直接DXFやSVGの座標を吐かせる方式\n  - sketch-extrude系の学習モデル（DeepCAD, Text2CAD, SkexGen, CAD-Recode 等）\n  - floor plan 生成モデル（House-GAN, HouseDiffusion, Graph2Plan, RPLAN系）\n  それぞれ「2D建築図面」にどこまで転用可能で、何で頭打ちになるのか。\n\n(2) 既存の評価ベンチマーク／自動採点手法とデータセット。\n  - CAD生成の評価指標（Chamfer distance, IoU, valid rate 等）は何を測れていて何を測れていないか\n  - 「2D建築図面」を対象にした公開ベンチマークは存在するか。存在しないなら、なぜ作られていないのか（ground truth の入手困難性か、評価軸の非自明性か）\n  - 使える公開データセット（CubiCasa5K, RPLAN, LIFULL HOME'S データセット(NII IDR), Swiss Dwellings 等）が「図面」の ground truth になり得るか、それとも「間取り図(ラスタ)」に過ぎないのか\n\n(3) 商用製品の競合棚卸し。何ができて何ができないか、価格帯、日本での入手性。\n  - Autodesk（Forma, Project Bernini, AutoCAD の AI 機能）\n  - Finch3D, Swapp, maket.ai, ArkDesign.ai, Hypar, TestFit\n  - 日本勢: 福井コンピュータ, Arent, 応用技術, グラフィソフトジャパン, その他建築AIスタートアップ\n  - 特に「自然言語 → 実務で通る2D図面」を謳っている製品が実在するか、その実力\n\n(4) 日本の建築2D図面に固有の要件。\n  - JW_CAD の中小設計事務所・工務店でのシェアと、AutoCAD LT との比率（一次情報ベースで）\n  - 製図の作法（通り芯、寸法線の階層、建具符号、部材符号、線種・線色の使い分け、図面枠と記名欄、縮尺表記）が標準化されているか（JIS A 0150 建築製図通則 等）\n  - 建築確認申請に必要な図書とその図面要件（何がどこまで描かれていないと受理されないか）\n\n最終的に判定してほしいこと: 「AIが建築2D図面をどこまで書けるか」を測る公開ベンチマークは空白地帯か。空白ならその理由は「難しすぎて誰も作れない」のか「誰も気づいていない/儲からない」のか。埋まっているなら誰が何を測っているのか。",
+ "summary": "As of mid-2026 there is NO public benchmark that measures whether an AI can produce construction-grade 2D architectural drawings (dimensioned, symbol-annotated DXF/JW_CAD plans, elevations, sections). The benchmark ecosystem that DOES exist splits into two adjacent-but-different territories: (a) 3D mechanical parametric CAD (DeepCAD/Text2CAD/CAD-Recode → benchmarks like CADGenBench and Text2CAD-Bench that score solid-geometry validity, Chamfer distance, IoU), and (b) residential floor-plan LAYOUT generation (RPLAN/MSD/Swiss Dwellings → metrics for room count, adjacency/connectivity, area error, overlap). Every one of these measures either mechanical solids or room-layout topology; none measures drafting conventions (通り芯, 寸法線, 建具符号, 線種/線色, 図面枠, 縮尺) or 確認申請 compliance, and the standard datasets are raster or vector 間取り data, not CAD-grade drafting ground truth. Technically, the most 2D-capable route is CAD-as-code (LLM writes ezdxf/build123d/CadQuery/Revit-API code, with working DXF/SVG export), but LLM code reliability collapses as geometry complexity rises (invalidity ~15%→70-90% from L1 to L3). The blank space is best explained NOT as \"impossible to score\" — the floor-plan community shows layout metrics are definable — but as a combination of scarce drafting-annotated ground truth (real drawings are proprietary and encode tacit, only-partly-standardized conventions) plus an incentive gradient that points money toward clean 3D-mechanical datasets and toward upstream feasibility tools (e.g. TestFit) that deliberately hand off BEFORE construction drafting.",
+ "findings": [
+  {
+   "claim": "CAD-as-code (LLM writes ezdxf/CadQuery/build123d/Revit-API code) is the most mature route to 2D-format output, and working pipelines already export DXF/SVG — but they emit generic geometry or BIM data, not construction-grade architectural drawings.",
+   "confidence": "high",
+   "vote": "3x 3-0",
+   "sources": [
+    "https://arxiv.org/abs/2412.14042",
+    "https://github.com/pzfreo/build123d-mcp",
+    "https://arxiv.org/html/2509.00543v1"
+   ],
+   "evidence": "CAD-Recode uses a small LLM (Qwen2-1.5B) as a decoder that emits CadQuery Python reconstructing solids from point clouds (ICCV 2025). build123d-mcp is an MCP server letting Claude/Cursor/VS Code run build123d Python in a persistent session and export STEP/STL/DXF/SVG — DXF is inherently 2D, so the 2D-export pipeline is real and library-backed (build123d ships ExportDXF/ExportSVG). The Text-to-Layout pipeline (arXiv 2509.00543, Sept 2025) uses NL→LLM-generated JSON coordinates→Python calling the Revit API (GPT-4o most reliable among GPT-4o, o4-mini, o4-mini-high, Claude 2.1, Gemini 2.5 Pro). None of these outputs is a JIS/確認申請-grade 2D drawing; they are mechanical solids, raw geometry, or Revit BIM."
+  },
+  {
+   "claim": "The learned sketch-extrude text-to-CAD paradigm (Text2CAD, DeepCAD lineage, CAD-Recode) is genuine SOTA but is aimed at mechanical/parametric solid parts, not building floor plans, sections, or elevations.",
+   "confidence": "high",
+   "vote": "2x 3-0",
+   "sources": [
+    "https://www.researchgate.net/publication/397197580_Text2CAD_Generating_Sequential_CAD_Designs_from_Beginner-to-Expert_Level_Text_Prompts",
+    "https://arxiv.org/abs/2412.14042"
+   ],
+   "evidence": "Text2CAD (NeurIPS 2024 Spotlight, arXiv 2409.17106) is an end-to-end transformer autoregressive network turning NL prompts into parametric construction sequences (2D sketches + extrusions), trained on the DeepCAD dataset (~170K models derived from the ABC/Onshape mechanical-part corpus); its own abstract example is 'two concentric cylinders'. This whole family targets mechanical parts; architectural drawings are a separate research line (House-GAN, HouseDiffusion, RPLAN). Transfer to 2D building drawings is therefore not what these models learned."
+  },
+  {
+   "claim": "LLM CAD-code generation is reliable only for basic geometry and degrades sharply with complexity, which is the ceiling for the CAD-as-code route.",
+   "confidence": "high",
+   "vote": "3-0",
+   "sources": [
+    "https://arxiv.org/html/2605.18430"
+   ],
+   "evidence": "Text2CAD-Bench (arXiv 2605.18430, May 2026; 600 human-curated examples, 4 complexity levels) reports that from level L1 to L3 the Invalidity Rate rises from ~15% to 70-90% and Chamfer Distance increases 1.3-2.1x across frontier models — 'models perform reasonably on basic geometry but degrade substantially on complex topology and advanced features.' Corroborated by independent searches returning identical figures and per-model specifics (e.g. GPT-5.2 L1-Geo CD 44.31)."
+  },
+  {
+   "claim": "State-of-the-art floor-plan generation outputs room-layout polygons (raster/JSON/vector), never construction drawings; the leading LLM method emits JSON polygons in metres via SFT+GRPO and explicitly does not model circulation, egress, accessibility, daylight, structural constraints, or building codes.",
+   "confidence": "high",
+   "vote": "4x 3-0",
+   "sources": [
+    "https://arxiv.org/html/2605.14117v1"
+   ],
+   "evidence": "Lara et al. (Mila, arXiv 2605.14117, May 2026, NeurIPS 2025): rooms are encoded as floor_polygon vertex lists with absolute metric coordinates; two-stage supervised fine-tuning + GRPO/RLVR where invalid JSON or overlapping polygons get reward 0. Output is JSON only, never DXF/CAD code (independent search confirms peers ArchiText/FloorPlan-DeepSeek/HouseTune also emit polygon coords/vector tokens, and commercial DXF export is downstream auto-tracing). The paper's own Limitations state it optimizes only automatically-checkable geometric objectives that are 'necessary but not sufficient for architectural validity' and does NOT model circulation/egress/accessibility/daylight/structural/local codes — i.e. layout polygons, not buildable drawings."
+  },
+  {
+   "claim": "MSD (ECCV 2024) is the strongest existing floor-plan-generation benchmark and even it shows the problem is unsolved: SOTA baselines produce 'infeasible' layouts; MSD is multimodal (raster + vectorized geometry + access graph) but encodes only room shapes/types/connectivity, with no drafting elements.",
+   "confidence": "high",
+   "vote": "3x 3-0",
+   "sources": [
+    "https://caspervanengelenburg.github.io/msd-eccv24-page/"
+   ],
+   "evidence": "MSD = 5,372 highly-detailed floor plans of single/multi-unit complexes derived from Swiss Dwellings v3.0.0, offered as raster images + vectorized formats + access graphs. HouseDiffusion-based SOTA baselines 'often look infeasible' (more complex graphs, irregular rooms, unit connectivity, no axis alignment); authors trained the same model successfully on RPLAN and attribute failure to the harder benchmark, concluding floor-plan generation of building complexes 'invites researchers to rethink current methods.' Documentation contains no dimension lines, grid axes, door/window symbol codes, part symbols, line weights, or title blocks — so even the best vector floor-plan corpus is layout data, not a drafting ground truth."
+  },
+  {
+   "claim": "Existing CAD/floor-plan benchmarks measure geometric or layout validity — not drafting correctness. Mechanical benchmarks score a CAD-validity/valid-rate metric; floor-plan metrics are acknowledged inadequate and are topology/area-level only.",
+   "confidence": "high",
+   "vote": "4x 3-0",
+   "sources": [
+    "https://github.com/pzfreo/build123d-mcp",
+    "https://www.mdpi.com/2075-5309/15/10/1674",
+    "https://arxiv.org/html/2605.14117v1"
+   ],
+   "evidence": "CADGenBench (HuggingFace-org repo + private-eval Space, June 2026 leaderboard) gives every submission a first-class validity_rate; wrapping GPT-5.5 in build123d-mcp raised aggregate 0.360→0.457 and validity 88%→100% — but it scores 3D mechanical solids (watertight/manifold STEP/BREP), not 2D architectural DXF. For floor plans, the RFP-A framework paper (MDPI Buildings 15(10):1674, 2025) states FID/PSNR/SSIM 'perform poorly' at capturing floor-plan structure and that GED/IoU are 'limited in distinguishing' door-vs-wall connections; RFP-A's own four axes (room-count compliance, spatial connectivity, room locations, geometric features) are all layout-level, touching no drafting convention. The LLM-RLVR floor-plan rewards are purely connectivity (graph-edit distance) + total-area error + a hard overlap/JSON-parse feasibility gate. Across all of these, nothing scores 通り芯/寸法線/建具符号/線種/図面枠/縮尺."
+  },
+  {
+   "claim": "The available public datasets (RPLAN, MSD, Swiss Dwellings) are 間取り/layout ground truth — mostly raster and needing custom conversion — not CAD-grade vector drafting drawings; a documented raster-vs-drawing gap exists.",
+   "confidence": "high",
+   "vote": "3x 3-0",
+   "sources": [
+    "https://arxiv.org/html/2605.14117v1",
+    "https://www.mdpi.com/2075-5309/15/10/1674",
+    "https://caspervanengelenburg.github.io/msd-eccv24-page/"
+   ],
+   "evidence": "RPLAN — the standard benchmark — is 80,788 real Asian floor plans stored as 256x256x4 raster images (boundary/room-type/repetition/mask channels), which researchers must convert to JSON polygons with custom tooling (yielding 53,001 filtered 8-room examples). The gap is independently corroborated by the ResPlan vector-graph dataset (arXiv 2508.14006, Aug 2025), built specifically because prevailing floor-plan datasets are raster/graph, not vector. Even MSD's vector modality encodes room geometry/type/adjacency, not dimensioned drafting annotations. So these can serve as 間取り ground truth but not as ground truth for a dimensioned, symbol-annotated 2D drawing."
+  },
+  {
+   "claim": "Leading commercial 'AI architecture' tools sit UPSTREAM of construction 2D drafting. TestFit is a real-estate feasibility/generative-design platform (site plans, parking, massing, unit mix, takeoffs, pro forma) driven by visual goal-based optimization, not natural language, and its outputs are feasibility-stage — explicitly not permit-ready or construction 2D drawings.",
+   "confidence": "high",
+   "vote": "2x 3-0",
+   "sources": [
+    "https://www.testfit.io/pricing"
+   ],
+   "evidence": "testfit.io self-brands as a 'Real Estate Feasibility Platform' (Site Solver, Parking Solver, Urban Planner) optimizing FAR/parking ratio/yield; interaction is visual + goal/KPI-based, with no natural-language/chat feature found. Independent 2026 reviews confirm it is 'design-side, not construction-doc' and that plans 'often need manual refinement before they're construction-ready'; it exports DXF/.tfrvt to Revit/AutoCAD so consultants handle documentation downstream. This illustrates that the commercial frontier for NL/AI targets early feasibility, not the detailed 2D drafting the question concerns. NOTE: only TestFit survived verification — the other named vendors were not confirmed either way (see caveats)."
+  },
+  {
+   "claim": "Japanese architectural drafting IS formally standardized, so a benchmark's pass/fail rubric for Japanese 2D drawings has a codified basis to build on.",
+   "confidence": "high",
+   "vote": "3-0",
+   "sources": [
+    "https://kikakurui.com/a0/A0150-1999-01.html"
+   ],
+   "evidence": "JIS A 0150:1999 (建築製図通則 / 'Drawing office practice for architecture and building — General rules'), first established 1958, current revision 1999, codifies sheets/formats, characters, scales, dimensional notation, line types/thicknesses, reference lines (通り芯), and representation symbols; confirmed via the Japan Standards Association catalog and verbatim primary text. This means drafting conventions ARE standardized on paper — undercutting a pure 'it's un-scoreable' explanation for the missing benchmark and pointing instead to ground-truth scarcity and incentives."
+  },
+  {
+   "claim": "JUDGMENT: A public benchmark for 'how well AI writes construction-grade 2D architectural drawings' is a genuine blank space. The cause is a combination — scarce drafting-annotated ground truth plus an incentive gradient pointing elsewhere — not primarily 'the metric is impossible to define.'",
+   "confidence": "medium",
+   "vote": "synthesis (inference from absence across 3-0 claims; a claim asserting the absence outright drew only 1-2)",
+   "sources": [
+    "https://arxiv.org/html/2605.14117v1",
+    "https://caspervanengelenburg.github.io/msd-eccv24-page/",
+    "https://www.mdpi.com/2075-5309/15/10/1674",
+    "https://github.com/pzfreo/build123d-mcp",
+    "https://www.testfit.io/pricing",
+    "https://kikakurui.com/a0/A0150-1999-01.html"
+   ],
+   "evidence": "Every verified benchmark measures either 3D mechanical solids (CADGenBench, Text2CAD-Bench) or floor-plan LAYOUT (RFP-A, MSD, RPLAN) — none scores drafting conventions or 確認申請 compliance. Two forces explain the gap: (1) ground-truth scarcity — usable public datasets are raster/vector 間取り, real dimensioned drawings are proprietary and encode tacit conventions, and even the floor-plan community concedes its metrics are inadequate; (2) incentive gradient — clean parametric ground truth exists for mechanical parts (Onshape/ABC), so research money concentrates there, while commercial NL/AI value is captured upstream at feasibility (TestFit hands off before drafting). JIS A 0150 shows the rubric is definable, so 'un-scoreable' is not the main blocker. Confidence is medium because this is an inference from absence: verifiers were cautious about any claim positively asserting 'no such benchmark exists' (that specific framing scored 1-2), so the blank is strongly implied by the evidence rather than stated by a single source."
+  }
+ ],
+ "caveats": "1. Commercial 棚卸し is thin: only TestFit survived adversarial verification. There are NO verified claims about Autodesk Forma, Project Bernini, AutoCAD AI features, Finch3D, Swapp, maket.ai, ArkDesign.ai, Hypar, or any Japanese vendor (福井コンピュータ, Arent, 応用技術, グラフィソフトジャパン). Treat Q3 as substantially unanswered — absence of a verified claim is not evidence a product cannot do it. One related claim (\"only Arkio/TestFit/Hypar give a relatively direct prompt-to-Revit workflow, still conceptual\") was REFUTED at 1-2, so even that partial mapping is unreliable.\n2. Q4 partially unanswered: no surviving quantitative data on JW_CAD vs AutoCAD LT market share among Japanese SMB firms/工務店, and no surviving specifics on 確認申請 figure-level requirements (what must be drawn to avoid rejection). Only the JIS standardization fact is confirmed.\n3. Source freshness/quality mix: several load-bearing sources are very recent arXiv preprints with 2026 identifiers (Text2CAD-Bench 2605.18430; floor-plan RLVR 2605.14117 — NeurIPS 2025 accepted; CADGenBench is a June-2026 live leaderboard snapshot whose numbers will drift). The RFP-A metric-critique source is MDPI Buildings (lower-tier, and self-serving since it proposes its own metric, though externally corroborated). build123d-mcp evidence includes a vendor repo, but the leaderboard numbers were cross-checked against the independent results.jsonl.\n4. The central \"blank space\" judgment is an inference from the absence of any drafting-level benchmark across all verified sources, not a direct quotation from a source declaring the gap. A claim that asserted the absence too strongly (CADGenBench explicitly not covering 2D architectural drawings) only reached 1-2, so state the blank as strongly-implied, not proven.\n5. Fast-moving field: emerging vector datasets (ResPlan, Aug 2025) and monthly benchmark churn mean the picture could shift within quarters; the raster-to-vector trend is already underway and could seed a drafting benchmark sooner than the incentive analysis suggests.",
+ "openQuestions": [
+  "What is the actual JW_CAD vs AutoCAD LT share among Japanese SMB design offices and 工務店, from a primary source (vendor sales figures, industry survey, or 建築士 association data)? No verified evidence surfaced.",
+  "Do any of the unverified commercial tools — Autodesk Forma/Project Bernini, Arent, 福井コンピュータ, Hypar, Swapp, maket.ai, ArkDesign — actually produce permit-ready or JIS-conformant 2D drawings from natural language, or do they all (like TestFit) hand off at feasibility/BIM before drafting?",
+  "At the figure level, what specifically must a 確認申請 set contain (通り芯, 寸法, 建具符号, 面積表, 縮尺, etc.) for it to be received — i.e. what would the pass/fail rubric of a Japanese 2D-drawing benchmark actually encode?",
+  "Do emerging vector floor-plan datasets (ResPlan, CubiCasa5K) carry enough drafting annotation (dimensions, symbols, line types) to bootstrap a drafting-level benchmark, or are they still layout-only — and would JIS A 0150 be sufficient to auto-score conformance?"
+ ],
+ "refuted": [
+  {
+   "claim": "On the synthetic DeepCAD benchmark CAD-Recode achieves mean Chamfer Distance 0.308, IoU 87.6% and only 0.5% invalid ratio, but on the real-world CC3D scans performance degrades sharply to mean CD 4.76, IoU 64.3% and 3.3% invalid ratio — quantifying the synthetic-to-real generalization gap that CD/IoU/valid-rate metrics capture.",
+   "vote": "0-3",
+   "source": "https://arxiv.org/abs/2412.14042"
+  },
+  {
+   "claim": "CADGenBench evaluates 3D mechanical parts and explicitly does NOT cover 2D architectural drawings (floor plans, elevations, sections) — confirming the absence of a 2D building-drawing benchmark even within the newest CAD-generation benchmarks.",
+   "vote": "1-2",
+   "source": "https://github.com/huggingface/cadgenbench"
+  },
+  {
+   "claim": "This peer-reviewed-track academic paper on text-to-floor-plan generation reports NO quantitative evaluation metrics, no benchmark, and no dataset — evaluation is purely visual/qualitative over a single 30x40 ft residential case study — evidencing the absence of an accepted benchmark for AI-generated architectural 2D plans.",
+   "vote": "0-3",
+   "source": "https://arxiv.org/html/2509.00543v1"
+  },
+  {
+   "claim": "Among existing prompt-to-BIM commercial tools, none are open-source, and only Arkio AI, TestFit, and Hypar provide a relatively direct prompt-to-Revit workflow — and even those outputs remain at a conceptual or partially-parameterized level rather than production drawings.",
+   "vote": "1-2",
+   "source": "https://arxiv.org/html/2509.00543v1"
+  },
+  {
+   "claim": "State-of-the-art LLM floor-plan generation is limited to simple single-story rectangular layouts and does not incorporate building-code compliance, accessibility standards, or regulatory constraints — the requirements that determine whether a real 2D drawing is usable.",
+   "vote": "0-3",
+   "source": "https://arxiv.org/html/2509.00543v1"
+  }
+ ],
+ "unverified": [],
+ "sources": [
+  {
+   "url": "https://arxiv.org/abs/2412.14042",
+   "quality": "primary",
+   "angle": "academic/technical (learned generative models)",
+   "claimCount": 5
+  },
+  {
+   "url": "https://www.researchgate.net/publication/397197580_Text2CAD_Generating_Sequential_CAD_Designs_from_Beginner-to-Expert_Level_Text_Prompts",
+   "quality": "primary",
+   "angle": "academic/technical (learned generative models)",
+   "claimCount": 5
+  },
+  {
+   "url": "https://github.com/pzfreo/build123d-mcp",
+   "quality": "primary",
+   "angle": "practitioner/implementation (CAD-as-code & direct DXF/SVG)",
+   "claimCount": 4
+  },
+  {
+   "url": "https://github.com/huggingface/cadgenbench",
+   "quality": "primary",
+   "angle": "practitioner/implementation (CAD-as-code & direct DXF/SVG)",
+   "claimCount": 4
+  },
+  {
+   "url": "https://www.mdpi.com/2075-5309/15/10/1674",
+   "quality": "primary",
+   "angle": "evaluation/benchmarks & datasets",
+   "claimCount": 5
+  },
+  {
+   "url": "https://caspervanengelenburg.github.io/msd-eccv24-page/",
+   "quality": "primary",
+   "angle": "evaluation/benchmarks & datasets",
+   "claimCount": 5
+  },
+  {
+   "url": "https://arxiv.org/html/2605.18430",
+   "quality": "primary",
+   "angle": "evaluation/benchmarks & datasets",
+   "claimCount": 5
+  },
+  {
+   "url": "https://arxiv.org/html/2605.14117v1",
+   "quality": "primary",
+   "angle": "evaluation/benchmarks & datasets",
+   "claimCount": 5
+  },
+  {
+   "url": "https://www.emergentmind.com/topics/cubicasa5k-dataset-1b6b7d61-dd68-406e-aa2a-87eb0dd79b93",
+   "quality": "secondary",
+   "angle": "evaluation/benchmarks & datasets",
+   "claimCount": 4
+  },
+  {
+   "url": "https://arxiv.org/html/2509.00543v1",
+   "quality": "primary",
+   "angle": "evaluation/benchmarks & datasets",
+   "claimCount": 5
+  },
+  {
+   "url": "https://datadrivenaec.com/tools/swapp-ai",
+   "quality": "secondary",
+   "angle": "industry adoption (global commercial products)",
+   "claimCount": 5
+  },
+  {
+   "url": "https://illustrarch.com/articles/75056-finch3d-review.html",
+   "quality": "unreliable",
+   "angle": "industry adoption (global commercial products)",
+   "claimCount": 0
+  },
+  {
+   "url": "https://www.testfit.io/pricing",
+   "quality": "primary",
+   "angle": "industry adoption (global commercial products)",
+   "claimCount": 4
+  },
+  {
+   "url": "https://illustrarch.com/articles/design-softwares/73363-autodesk-forma-review.html",
+   "quality": "unreliable",
+   "angle": "industry adoption (global commercial products)",
+   "claimCount": 0
+  },
+  {
+   "url": "https://kikakurui.com/a0/A0150-1999-01.html",
+   "quality": "primary",
+   "angle": "regulatory/localization (Japan drafting standards & permits)",
+   "claimCount": 5
+  },
+  {
+   "url": "https://www.seinouhyouka.co.jp/assets/images/service/construction/hitsuyousyorui.pdf",
+   "quality": "primary",
+   "angle": "regulatory/localization (Japan drafting standards & permits)",
+   "claimCount": 5
+  },
+  {
+   "url": "https://www.cac-osaka.jp/document/image/98e4a4903713e764405b21a6285af1ba5d7b3b9a.pdf",
+   "quality": "primary",
+   "angle": "regulatory/localization (Japan drafting standards & permits)",
+   "claimCount": 5
+  },
+  {
+   "url": "https://designyaama.com/application/",
+   "quality": "unreliable",
+   "angle": "regulatory/localization (Japan drafting standards & permits)",
+   "claimCount": 0
+  },
+  {
+   "url": "https://ja.wikipedia.org/wiki/Jw_cad",
+   "quality": "secondary",
+   "angle": "regulatory/localization (Japan drafting standards & permits)",
+   "claimCount": 5
+  },
+  {
+   "url": "https://marketing.ipros.jp/contents/basics/basic-architectural-drafting2/",
+   "quality": "secondary",
+   "angle": "regulatory/localization (Japan drafting standards & permits)",
+   "claimCount": 4
+  },
+  {
+   "url": "https://news.build-app.jp/article/35342/",
+   "quality": "secondary",
+   "angle": "industry adoption (Japan building-AI vendors)",
+   "claimCount": 5
+  },
+  {
+   "url": "https://ken-it.world/it/2026/02/words-to-bim.html",
+   "quality": "blog",
+   "angle": "industry adoption (Japan building-AI vendors)",
+   "claimCount": 5
+  },
+  {
+   "url": "https://note.com/arent3d/n/nc3ffa409fb8d",
+   "quality": "blog",
+   "angle": "industry adoption (Japan building-AI vendors)",
+   "claimCount": 3
+  },
+  {
+   "url": "https://built.itmedia.co.jp/bt/articles/2504/02/news129.html",
+   "quality": "secondary",
+   "angle": "industry adoption (Japan building-AI vendors)",
+   "claimCount": 5
+  }
+ ],
+ "stats": {
+  "angles": 6,
+  "sourcesFetched": 24,
+  "claimsExtracted": 98,
+  "claimsVerified": 25,
+  "confirmed": 20,
+  "killed": 5,
+  "unverified": 0,
+  "afterSynthesis": 10,
+  "urlDupes": 3,
+  "budgetDropped": 9,
+  "agentCalls": 107
+ }
+}

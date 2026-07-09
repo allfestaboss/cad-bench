@@ -1,0 +1,58 @@
+{
+  "id": "T001",
+  "title": "木造平屋 1階平面図（作図のみ・設計自由度ゼロ）",
+  "unit": "mm",
+  "scale": "1:100",
+  "module": 910,
+  "note": "座標系は建物南西の通り芯交点を原点(0,0)、X=東、Y=北。全て通り芯の座標。開口は壁の from 点からの距離 t0..t1 で与える。",
+
+  "grid": {
+    "x": {"labels": ["X1","X2","X3","X4","X5","X6","X7"], "coords": [0, 910, 1820, 2730, 3640, 4550, 5460]},
+    "y": {"labels": ["Y1","Y2","Y3","Y4","Y5","Y6"],       "coords": [0, 910, 1820, 2730, 3640, 4550]}
+  },
+
+  "wall_thickness": 120,
+  "wall_alignment": "centered_on_grid",
+
+  "walls": [
+    {"id": "W-S", "kind": "exterior", "from": [0, 0],       "to": [5460, 0]},
+    {"id": "W-E", "kind": "exterior", "from": [5460, 0],    "to": [5460, 4550]},
+    {"id": "W-N", "kind": "exterior", "from": [0, 4550],    "to": [5460, 4550]},
+    {"id": "W-W", "kind": "exterior", "from": [0, 0],       "to": [0, 4550]},
+    {"id": "W-1", "kind": "interior", "from": [1820, 0],    "to": [1820, 4550]},
+    {"id": "W-2", "kind": "interior", "from": [0, 1820],    "to": [1820, 1820]},
+    {"id": "W-3", "kind": "interior", "from": [0, 2730],    "to": [1820, 2730]}
+  ],
+
+  "rooms": [
+    {"name": "玄関",     "poly": [[0,0],[1820,0],[1820,1820],[0,1820]],          "area_m2": 3.3124},
+    {"name": "便所",     "poly": [[0,1820],[1820,1820],[1820,2730],[0,2730]],    "area_m2": 1.6562},
+    {"name": "洗面浴室", "poly": [[0,2730],[1820,2730],[1820,4550],[0,4550]],    "area_m2": 3.3124},
+    {"name": "LDK",      "poly": [[1820,0],[5460,0],[5460,4550],[1820,4550]],    "area_m2": 16.5620}
+  ],
+
+  "openings": [
+    {"id": "O1", "type": "door",   "wall": "W-S", "t0": 455,  "t1": 1365, "desc": "玄関ドア"},
+    {"id": "O2", "type": "window", "wall": "W-S", "t0": 2730, "t1": 4550, "desc": "LDK掃出窓"},
+    {"id": "O3", "type": "window", "wall": "W-E", "t0": 1820, "t1": 3640, "desc": "LDK窓"},
+    {"id": "O4", "type": "door",   "wall": "W-1", "t0": 455,  "t1": 1365, "desc": "玄関→LDK 内部ドア"}
+  ],
+  "openings_requirement": {"door_symbol": false, "window_symbol": false},
+
+  "dimensions": {
+    "requirement": "実CADの寸法エンティティ(DIMENSION)で作図すること。線分と文字による見た目の模倣は不可。",
+    "chains": [
+      {"id": "D-S", "direction": "x", "at": 0, "stations": [0,910,1820,2730,3640,4550,5460], "overall": 5460, "base": -600, "overall_base": -1600},
+      {"id": "D-W", "direction": "y", "at": 0, "stations": [0,910,1820,2730,3640,4550],      "overall": 4550, "base": -600, "overall_base": -1600}
+    ]
+  },
+
+  "layers": {
+    "required": ["GRID", "WALL", "OPENING", "DIM", "ROOM", "TEXT"],
+    "policy": "各エンティティは用途どおりのレイヤに置くこと。0レイヤへの直置きは不可。"
+  },
+
+  "grid_labels": {"requirement": "通り芯の端部に X1..X7 / Y1..Y6 の符号を記入。GRIDレイヤ。"},
+  "room_labels": {"requirement": "各室の中央付近に室名を記入。ROOMレイヤ。"},
+  "output": {"format": "DXF", "dxf_version": "AC1015_or_later", "model_space_units": "mm_1to1"}
+}
