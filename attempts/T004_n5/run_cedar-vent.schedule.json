@@ -1,0 +1,92 @@
+{
+  "stairs": {
+    "risers": 13,
+    "riser_mm": 223.08,
+    "tread_mm": 152,
+    "width_mm": 900,
+    "note": "floor_height 2900 / 13 = 223.08 <= 230. tread 152 >= 150. width 900 >= 750. STAIRレイヤに段板12本(=13-1)を長さ900で作図。"
+  },
+  "openings": {
+    "O1": {
+      "room": "玄関",
+      "type": "door",
+      "wall": "W-S",
+      "width_mm": 910,
+      "height_mm": 2000,
+      "openable_ratio": 0.0
+    },
+    "O2": {
+      "room": "和室",
+      "type": "window",
+      "wall": "W-S",
+      "width_mm": 2730,
+      "height_mm": 2000,
+      "openable_ratio": 0.5
+    },
+    "O3": {
+      "room": "和室",
+      "type": "window",
+      "wall": "W-E",
+      "width_mm": 1820,
+      "height_mm": 1100,
+      "openable_ratio": 0.5
+    },
+    "O4": {
+      "room": "LDK",
+      "type": "window",
+      "wall": "W-D",
+      "width_mm": 1800,
+      "height_mm": 1800,
+      "openable_ratio": 0.5
+    },
+    "O5": {
+      "room": "LDK",
+      "type": "window",
+      "wall": "W-N",
+      "width_mm": 2730,
+      "height_mm": 1800,
+      "openable_ratio": 0.5
+    },
+    "O6": {
+      "room": "玄関",
+      "type": "door",
+      "wall": "I1",
+      "width_mm": 910,
+      "height_mm": 2000,
+      "openable_ratio": 0.0
+    },
+    "O7": {
+      "room": "洗面脱衣",
+      "type": "door",
+      "wall": "I7",
+      "width_mm": 910,
+      "height_mm": 2000,
+      "openable_ratio": 0.0
+    },
+    "O8": {
+      "room": "和室",
+      "type": "door",
+      "wall": "I7",
+      "width_mm": 910,
+      "height_mm": 2000,
+      "openable_ratio": 0.0
+    }
+  },
+  "check": {
+    "和室": {
+      "area_m2": 16.562,
+      "daylight_required_m2": 2.366,
+      "daylight_provided_m2": 7.462,
+      "ventilation_required_m2": 0.8281,
+      "ventilation_provided_m2": 3.731
+    },
+    "LDK": {
+      "area_m2": 31.4678,
+      "daylight_required_m2": 4.4954,
+      "daylight_provided_m2": 8.154,
+      "ventilation_required_m2": 1.5734,
+      "ventilation_provided_m2": 4.077
+    },
+    "total_floor_area_m2": 72.8728
+  }
+}

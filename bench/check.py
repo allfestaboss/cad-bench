@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import math
 import sys
+from collections import Counter
 from pathlib import Path
 
 import ezdxf
@@ -147,12 +148,33 @@ def grade(spec, path, sched=None):
 
     # ---- L2 寸法
     dims = [e for e in ents if e.dxftype() == "DIMENSION"]
-    wf = [d for d in dims if d.dxf.hasattr("geometry") and d.dxf.geometry in doc.blocks]
     n_exp = sum(len(c["stations"]) if c.get("overall") is not None else len(c["stations"]) - 1
                 for c in spec["dimensions"]["chains"])
-    add("L2", "DIMENSIONで作図されている（作図ブロックを持つ）",
-        10 * min(1.0, len(wf) / n_exp), 10, len(wf) >= n_exp,
-        f"DIMENSION {len(dims)}個 / 作図ブロックあり {len(wf)}個 / 期待 {n_exp}個")
+
+    # 名前が存在するだけでは不可。空のブロック1個を全DIMENSIONで共有すると
+    # CADには寸法が1本も描かれないのに満点が取れてしまう（run_cedar-vent で実証）。
+    # AutoCAD は寸法1本につき無名ブロック1個を作るので、専有と非空を要求する。
+    used = Counter(d.dxf.geometry for d in dims
+                   if d.dxf.hasattr("geometry") and d.dxf.geometry in doc.blocks)
+    wf, empty, shared = [], 0, 0
+    for d in dims:
+        g = d.dxf.geometry if d.dxf.hasattr("geometry") else None
+        if g is None or g not in doc.blocks:
+            continue
+        if len(doc.blocks[g]) == 0:
+            empty += 1
+            continue
+        if used[g] > 1:
+            shared += 1
+            continue
+        wf.append(d)
+    why = f"DIMENSION {len(dims)}個 / 作図ブロックあり {len(wf)}個 / 期待 {n_exp}個"
+    if empty:
+        why += f" ／ 中身が空 {empty}個"
+    if shared:
+        why += f" ／ 他の寸法と共有 {shared}個"
+    add("L2", "DIMENSIONで作図されている（専有の作図ブロックに中身がある）",
+        10 * min(1.0, len(wf) / n_exp), 10, len(wf) >= n_exp, why)
 
     def displayed(d):
         try:
