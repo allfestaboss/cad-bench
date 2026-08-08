@@ -1,5 +1,8 @@
 # cad-bench — AIは建築2D図面をどこまで書けるか
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21847358.svg)](https://doi.org/10.5281/zenodo.21847358)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 DXF形式の建築2D図面（平面図）をAIがどこまで作図できるかを、機械採点で測るベンチマーク。
 
 ## なぜ作ったか
@@ -186,4 +189,5 @@ armC は45度の隅では、何を見ればいいか知らなかったので落�
 ```
 Ohkubo, B. (Allfesta Corp.) (2026). cad-bench: AIは建築2D図面をどこまで書けるか.
 https://orcid.org/0009-0007-8300-0039
+Zenodo. https://doi.org/10.5281/zenodo.21847358
 ```
