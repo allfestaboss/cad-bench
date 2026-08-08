@@ -1,0 +1,33 @@
+{
+  "title": "cad-bench: AIは建築2D図面をどこまで書けるか",
+  "upload_type": "software",
+  "access_right": "open",
+  "license": "MIT",
+  "language": "jpn",
+  "creators": [
+    {
+      "name": "Ohkubo, Boss",
+      "affiliation": "Allfesta Corp.",
+      "orcid": "0009-0007-8300-0039"
+    }
+  ],
+  "description": "<p>A benchmark measuring how far large language models can author 2D architectural drawings in DXF, scored mechanically.</p><p>Unlike drawing-comprehension benchmarks, the model must emit a file, and the scoring goes beyond geometric agreement to the semantics of dimensioning: whether the displayed dimension value actually matches the measured length. This is a real failure mode — Autodesk documents that DIMLFAC and text overrides cause displayed values to diverge from true lengths, and no automatic detection exists. Existing evaluation work on AI-generated CAD reports Chamfer distance, IoU, F1 and invalidity rate; none of these can see a dimension label that lies.</p><p>The task specification is derived from a prefectural design-review checklist, in which the required checks (drawing-to-drawing consistency, cross-checking against calculations and quantities) map directly onto the fields of the task spec — and in which the words for CAD, automatic, software and displayed value appear zero times.</p><p>DXF 形式の建築2D図面を書かせて機械採点する。幾何の一致だけでなく、寸法表示値と実長の整合という意味論まで問う。既存の AI 生成 CAD の評価指標では見えない失敗の型を対象にしている。</p><p><strong>Note on data:</strong> The prefectural design-review checklist that informed the task specification is not bundled, because third-party redistribution permission could not be confirmed. The benchmark code does not reference it.</p><p>Part of the AI Practical Reach Index, a series applying one common yardstick across Japanese professional domains.</p>",
+  "keywords": [
+    "LLM benchmark",
+    "DXF",
+    "CAD",
+    "architectural drawing",
+    "drawing generation",
+    "dimensioning semantics",
+    "evaluation methodology",
+    "建築2D図面",
+    "作図"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://arxiv.org/abs/2606.20146",
+      "relation": "references",
+      "scheme": "url"
+    }
+  ]
+}

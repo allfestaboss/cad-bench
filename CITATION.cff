@@ -1,0 +1,39 @@
+cff-version: 1.2.0
+message: "本ベンチマークを利用した場合は、以下を引用してください。 / If you use this benchmark, please cite it as below."
+type: software
+
+title: "cad-bench: AIは建築2D図面をどこまで書けるか"
+
+abstract: >-
+  A benchmark measuring how far large language models can author 2D architectural drawings in DXF, scored mechanically.
+  
+  Unlike drawing-comprehension benchmarks, the model must emit a file, and the scoring goes beyond geometric agreement to the semantics of dimensioning: whether the displayed dimension value actually matches the measured length. This is a real failure mode — Autodesk documents that DIMLFAC and text overrides cause displayed values to diverge from true lengths, and no automatic detection exists. Existing evaluation work on AI-generated CAD reports Chamfer distance, IoU, F1 and invalidity rate; none of these can see a dimension label that lies.
+  
+  The task specification is derived from a prefectural design-review checklist, in which the required checks (drawing-to-drawing consistency, cross-checking against calculations and quantities) map directly onto the fields of the task spec — and in which the words for CAD, automatic, software and displayed value appear zero times.
+
+  DXF 形式の建築2D図面を書かせて機械採点する。幾何の一致だけでなく、寸法表示値と実長の整合という意味論まで問う。既存の AI 生成 CAD の評価指標では見えない失敗の型を対象にしている。
+
+authors:
+  - family-names: "Ohkubo"
+    given-names: "Boss"
+    affiliation: "Allfesta Corp."
+    orcid: "https://orcid.org/0009-0007-8300-0039"
+
+version: "1.0.0"
+date-released: "2026-08-08"
+license: MIT
+url: "https://github.com/allfestaboss/cad-bench"
+repository-code: "https://github.com/allfestaboss/cad-bench"
+
+keywords:
+  - LLM benchmark
+  - DXF
+  - CAD
+  - architectural drawing
+  - drawing generation
+  - dimensioning semantics
+  - DIMLFAC
+  - evaluation methodology
+  - adversarial grader validation
+  - 建築2D図面
+  - 作図

@@ -1,0 +1,34 @@
+NOTICE — 一次資料の取り扱い / Note on source materials
+========================================================
+
+`LICENSE` の MIT は、本リポジトリの**コードと文章**に適用されます。
+The MIT License covers the code and prose in this repository.
+
+
+同梱していないもの / NOT bundled
+---------------------------------
+
+  千葉県 照査項目チェックリスト（R3.01）
+  `docs/chiba-shousa-checklist-r0301.pdf` および そのテキスト起こし
+  `docs/chiba-shousa.txt` — いずれも .gitignore で除外
+
+  出典 : 千葉県県土整備部  https://www.pref.chiba.lg.jp/
+
+  第三者による再配布の可否を確認できなかったため同梱していません。
+  設計上の位置づけ（照査項目がそのまま spec.json の構造に対応していたこと、
+  および「CAD」「自動」「ソフト」「表示値」の出現が0件であったこと）は
+  README に自分の言葉で記述してあり、ベンチのコードはこの資料を参照していません。
+  したがって較正・敵対テスト・採点は資料が無くても通ります。
+
+  Not bundled because third-party redistribution permission could not be
+  confirmed. The benchmark code does not reference it; the design rationale
+  drawn from it is described in the README in the author's own words.
+
+
+同梱しているもの / Bundled
+---------------------------
+
+  reference/*.dxf      参照解。本リポジトリで作成したもの（MIT）
+  attempts/**/*.dxf    腕の提出物。実験の記録（MIT）
+  tasks/ bench/ checker/  課題・コード・採点器（MIT）
+  docs/research-*.json 調査の記録。本リポジトリで作成したもの（MIT）

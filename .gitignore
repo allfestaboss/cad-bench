@@ -1,7 +1,10 @@
 .venv/
 __pycache__/
 *.pyc
+out/
 .DS_Store
 
-# 生成物（run.sh / adversarial.py で再生成できる）
-out/
+# 千葉県 照査項目チェックリスト。第三者による再配布の可否を確認できないため同梱しない。
+# コードからは参照しておらず、設計の根拠は README に自分の言葉で書いてある。
+docs/chiba-shousa-checklist-r0301.pdf
+docs/chiba-shousa.txt
