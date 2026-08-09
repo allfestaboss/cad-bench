@@ -1,0 +1,34 @@
+{
+  "stairs": {
+    "risers": 13,
+    "riser_mm": 223.08,
+    "tread_mm": 151,
+    "width_mm": 910
+  },
+  "openings": {
+    "O2": {
+      "room": "和室",
+      "width_mm": 2730,
+      "height_mm": 1800,
+      "openable_ratio": 0.5
+    },
+    "O3": {
+      "room": "和室",
+      "width_mm": 1820,
+      "height_mm": 1100,
+      "openable_ratio": 0.5
+    },
+    "O4": {
+      "room": "LDK",
+      "width_mm": 1600,
+      "height_mm": 1800,
+      "openable_ratio": 0.5
+    },
+    "O5": {
+      "room": "LDK",
+      "width_mm": 2730,
+      "height_mm": 1800,
+      "openable_ratio": 0.5
+    }
+  }
+}
