@@ -372,15 +372,24 @@ def advise(spec, path):
     th = [e.dxf.height for e in msp if e.dxftype() == "TEXT" and e.dxf.layer in ("ROOM", "GRID", "TEXT")]
     note("文字が紙面で2.0mm以上", bool(th) and min(th) / S >= 2.0, f"最小 {min(th)/S:.2f}mm" if th else "なし")
 
+    # JIS A 0150:1999 10.1.1「基準線は，通常，実線で表現する。」
+    # 10.1.2 で一点鎖線は「はっきりとさせるために必要な箇所」に限る条件付き。
+    # かつて「通り芯が一点鎖線でないと NG」としていたのは規格に反していたので撤去した。
+    # 線の太さの比 1:2:4（10.1.3）は DXF のレイヤ線種からは判定できないので触れない。
     try:
         lt = doc.layers.get("GRID").dxf.linetype
     except Exception:  # noqa: BLE001
         lt = "?"
-    note("通り芯が一点鎖線", any(k in lt.upper() for k in ("CENTER", "DASHDOT")), f"GRID線種 = {lt}")
+    note("通り芯の線種（実線・一点鎖線いずれも可／JIS A 0150 10.1）", True, f"GRID線種 = {lt}")
 
+    # JIS A 0150:1999 10.2「…はっきり示す必要がある箇所では，線の片方又は両側に，
+    # 細線でかいた円を付ける。」「基準記号は円の近くに置いてもよい。」
+    # 円は必須ではなく、記号が円の外にあってもよい。符号の有無だけを見る。
     circ = sum(1 for e in msp if e.dxftype() == "CIRCLE" and e.dxf.layer == "GRID")
+    marks = sum(1 for e in msp if e.dxftype() in ("TEXT", "MTEXT") and e.dxf.layer == "GRID")
     n = len(spec["grid"]["x"]["coords"]) + len(spec["grid"]["y"]["coords"])
-    note("通り芯符号が丸囲み", circ >= n, f"円 {circ}個 / 必要 {n}個")
+    note("通り芯に基準記号がある（円は任意／JIS A 0150 10.2）", marks >= n,
+         f"符号 {marks}個 / 必要 {n}個（うち丸囲み {circ}個）")
 
     frame = False
     for e in msp:
