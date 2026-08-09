@@ -21,8 +21,8 @@ from shapely.geometry import LineString, MultiLineString, Point
 from shapely.ops import unary_union
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from geom import (TOL, boundary, load_spec, on_wall_face, opening_rect,  # noqa: E402
-                  point_at, room_poly, wall_of, wall_vec)
+from geom import (TOL, boundary, faces_of, load_spec, on_wall_face,  # noqa: E402
+                  opening_rect, point_at, room_poly, thick_of, wall_of, wall_vec)
 from resolve import resolve  # noqa: E402
 from code_check import check_code  # noqa: E402
 
@@ -140,11 +140,16 @@ def grade(spec, path, sched=None):
     add("L1", "WALLレイヤに余計な線がない", 5 * max(0.0, 1 - sr * 2), 5, sr < 0.02,
         f"余分な線 {sr*100:.1f}%  (実長 {wall_len:.0f}mm / 境界外 {spur:.0f}mm)")
 
-    th = spec["wall_thickness"]
-    faces_seg = [s for s in wsegs if math.dist(*s) > th + TOL]   # 小口は除外
+    # 小口は壁厚と同じ長さになるので、**最も厚い壁**の厚さを閾値にして除外する。
+    # spec["wall_thickness"] を使うと、それより厚い壁の小口が壁面と誤分類される
+    # （T005 で参照解が自分の検査に落ちて発覚）。
+    ths = sorted({thick_of(spec, w) for w in spec["walls"]})
+    tmax = max(ths)
+    faces_seg = [s for s in wsegs if math.dist(*s) > tmax + TOL]
     good = sum(1 for s in faces_seg if on_wall_face(spec, *s))
     ratio = good / len(faces_seg) if faces_seg else 0.0
-    add("L1", f"壁面が芯から±{th/2:.0f}mmに乗っている（壁厚{th}の担保）", 5 * ratio, 5, ratio > 0.98,
+    lab = f"壁厚{ths[0]:.0f}の担保" if len(ths) == 1 else f"壁ごとの厚さ{'/'.join(f'{t:.0f}' for t in ths)}の担保"
+    add("L1", f"壁面が各壁の面の位置に乗っている（{lab}）", 5 * ratio, 5, ratio > 0.98,
         f"適合 {good}/{len(faces_seg)} 線分（小口は対象外）")
 
     # ---- L2 寸法
@@ -224,9 +229,9 @@ def grade(spec, path, sched=None):
         w = wall_of(spec, o["wall"])
         ux, uy, _ = wall_vec(w)
         nx, ny = -uy, ux
-        h = th / 2.0
+        hl, hr = faces_of(spec, w)          # 壁ごとに面までの距離が違う
         mid = point_at(w, (o["t0"] + o["t1"]) / 2.0)
-        probes = [Point(mid[0] + nx * h, mid[1] + ny * h), Point(mid[0] - nx * h, mid[1] - ny * h)]
+        probes = [Point(mid[0] + nx * hl, mid[1] + ny * hl), Point(mid[0] - nx * hr, mid[1] - ny * hr)]
         if wall_g and all(p.distance(wall_u) > 5 * TOL for p in probes):
             ok_gap += 1
 

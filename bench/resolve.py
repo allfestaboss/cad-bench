@@ -44,11 +44,12 @@ def resolve(d: dict, sched: dict | None = None) -> dict:
     out = {k: v for k, v in d.items() if k not in ("walls", "openings", "rooms")}
     out["walls"] = []
     for w in d["walls"]:
-        out["walls"].append({
-            "id": w["id"], "kind": w["kind"],
-            "from": [coord(w["from"][0], "x"), coord(w["from"][1], "y")],
-            "to":   [coord(w["to"][0], "x"),   coord(w["to"][1], "y")],
-        })
+        # 座標以外のキーは落とさずに持ち越す。thickness / faces を落とすと
+        # 壁厚が全部 wall_thickness の既定値になり、参照解が黙って別物になる。
+        v = {k: val for k, val in w.items() if k not in ("from", "to")}
+        v["from"] = [coord(w["from"][0], "x"), coord(w["from"][1], "y")]
+        v["to"] = [coord(w["to"][0], "x"), coord(w["to"][1], "y")]
+        out["walls"].append(v)
 
     out["rooms"] = []
     for r in d["rooms"]:
