@@ -1,0 +1,20 @@
+{
+  "_env": {
+    "model": "unknown",
+    "sampling": "unrecorded",
+    "harness": "unrecorded",
+    "run_date": "2026-07",
+    "source": "reconstructed",
+    "note": "cad-bench の実行は追跡可能なセッション記録より前にあたり、モデルを特定できない。当時のログには claude-opus-4-8 と claude-opus-5 が並行して現れるため、仮定を置く根拠が無い。"
+  },
+  "_meta": {
+    "round": 2,
+    "task": "T004",
+    "n": 5,
+    "note": "3腕とも5回。点数は run ごとに残っているが、コストは1回あたりの平均しか記録していない。run 間分散は算出できない。"
+  },
+  "_granularity": "per-run mean, not per-run values",
+  "armA": { "tokens": 131505, "tool_uses": 20.6, "duration_ms": null },
+  "armB": { "tokens": 107929, "tool_uses": 9.2, "duration_ms": null },
+  "armC": { "tokens": 184379, "tool_uses": 57.6, "duration_ms": null }
+}
