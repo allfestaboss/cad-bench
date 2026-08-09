@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import math
+import re
 import sys
 from collections import Counter
 from pathlib import Path
@@ -369,8 +370,37 @@ def advise(spec, path):
     note("寸法文字が紙面で1.5mm以上", bool(hs) and min(hs) / S >= 1.5,
          f"最小 {min(hs)/S:.2f}mm" if hs else "DIMENSIONなし")
 
-    th = [e.dxf.height for e in msp if e.dxftype() == "TEXT" and e.dxf.layer in ("ROOM", "GRID", "TEXT")]
-    note("文字が紙面で2.0mm以上", bool(th) and min(th) / S >= 2.0, f"最小 {min(th)/S:.2f}mm" if th else "なし")
+    # JIS Z 8313-10:1998 6.2「文字の大きさの呼びの種類」
+    #   漢字 3.5, 5, 7, 10, 14, 20mm ／ 仮名 2.5, 3.5, 5, 7, 10, 14, 20mm
+    #   ローマ字・数字・記号は JIS Z 8313-1（呼びは 1.8 から）
+    # かつて一律「2.0mm以上」としていたが、2.0 はどの呼びにも無い値だった。
+    # MTEXT を見ていなかったのも誤り（生DXFの腕は MTEXT を使う）。
+    KANJI, KANA = re.compile(r"[一-鿿]"), re.compile(r"[぀-ヿ]")
+
+    def floor_mm(s):
+        return 3.5 if KANJI.search(s) else (2.5 if KANJI.search(s) or KANA.search(s) else 1.8)
+
+    bad, worst = [], None
+    for e in msp:
+        if e.dxf.layer not in ("ROOM", "GRID", "TEXT"):
+            continue
+        if e.dxftype() == "TEXT":
+            h, s = e.dxf.height, str(e.dxf.text or "")
+        elif e.dxftype() == "MTEXT":
+            h, s = e.dxf.char_height, str(e.text or "")
+        else:
+            continue
+        need = floor_mm(s)
+        mm = h / S
+        if worst is None or mm - need < worst[0]:
+            worst = (mm - need, mm, need, s[:8])
+        if mm + 1e-9 < need:
+            bad.append((mm, need, s[:8]))
+    if worst is None:
+        note("文字の大きさが呼びの下限以上（漢字3.5/仮名2.5mm・JIS Z 8313-10 6.2）", False, "文字なし")
+    else:
+        note("文字の大きさが呼びの下限以上（漢字3.5/仮名2.5mm・JIS Z 8313-10 6.2）", not bad,
+             f"不足 {len(bad)}件／最も厳しい例 「{worst[3]}」 {worst[1]:.2f}mm（要 {worst[2]}mm）")
 
     # JIS A 0150:1999 10.1.1「基準線は，通常，実線で表現する。」
     # 10.1.2 で一点鎖線は「はっきりとさせるために必要な箇所」に限る条件付き。
