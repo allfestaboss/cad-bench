@@ -8,8 +8,7 @@
  ],
  "arms_prompt_recorded": false,
  "hard": {
-  "tasks/T004/spec.json": "2184367744b0f47f74412d67e4ca66752321a1eb1b43d2695ceb99eed50a24a7",
-  "reference/reference_t004.dxf": "f9f6b404ed7dec82318c7db502171086726340d6e010859f0e051b659d2abc5f"
+  "tasks/T004/spec.json": "2184367744b0f47f74412d67e4ca66752321a1eb1b43d2695ceb99eed50a24a7"
  },
  "soft": {
   "bench/build_ref.py": "73415509d55e3db0b37216cd171b79df22061f209eb14d7abb761f7e29959e99",

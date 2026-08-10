@@ -47,7 +47,23 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 
 TASK_FILE = "spec.json"
-REF_PATTERNS = ["reference/reference_{low}.dxf"]
+
+# **参照解（DXF）は硬の層に入れない。**
+#
+# 本ベンチは run.sh が毎回 build_ref.py で参照解を生成し直す。DXF は作成時刻
+# （ユリウス日）と GUID と辞書の並びを含むので、**中身が同じでもバイトは毎回変わる。**
+# それをハッシュで縛ると、走らせるたびに必ず発火する。
+#
+# 実際そうなった。基準を取り、run.sh が再生成し、ハッシュが変わり、
+# **検査を入れた行為そのものが参照解を書き換えて commit された。**
+# 幾何も点数も変わっていない（旧版と新版を採点器に並べて全項目一致を確認済み）が、
+# 公開済みの参照解のバイトを動かしたことに変わりはない。
+#
+# **毎回必ず鳴る警報は、無視する癖を作る。**関門としても失敗である。
+#
+# そこで守る対象を入力に移す。**生成物は入力から再現できるので、縛るべきは入力のほう。**
+# 参照解が入力と食い合っているかは `verify_ref()` が意味で見る。
+REF_PATTERNS = []
 ANSWER_GLOB = "*.dxf"
 
 
@@ -72,6 +88,57 @@ def soft_paths() -> list[Path]:
         if p.is_dir():
             out += [f for f in sorted(p.glob("*.py")) if f.name != "freeze.py"]
     return out
+
+
+def verify_ref(task: str) -> str | None:
+    """参照解を生成し直して、**意味**が一致するか見る。バイトでは見ない。
+
+    DXF は毎回バイトが変わる（作成時刻・GUID・辞書の並び）ので、
+    採点器に現行版と生成し直した版を並べて通し、全項目の点数が一致するかで判定する。
+    **これが「参照解が動いていない」の意味である。**
+
+    **2つの罠を踏んだので、その対策が入っている。**
+
+    1. **検査が成果物を書き換えてはいけない。**最初の実装は本物の参照解の上に
+       生成し直していた。参照解のバイトが変わり、それを気づかず commit した
+       （幾何も点数も同一だったが、公開済みのバイトを動かしたことに変わりはない）。
+       いまは一時ファイルにだけ書き、**本物には触れない。**
+    2. **一時ファイルは参照解と同じディレクトリに置く。**採点器は建具表を
+       `<stem>.schedule.json` として**隣から**探す。`/tmp` に置くと建具表が
+       見つからず「解決できない」と出る。**中身ではなく置き場所が原因の誤検出だった。**
+    """
+    import subprocess, tempfile
+    ref = ROOT / f"reference/reference_{task.lower()}.dxf"
+    spec = ROOT / "tasks" / task / TASK_FILE
+    if not ref.exists() or not spec.exists():
+        return None
+    py = ROOT / ".venv/bin/python"
+    py = str(py) if py.exists() else sys.executable
+    tmp = ref.with_name(f".verify_{task.lower()}.dxf")   # **隣に置く**
+    sched = Path(str(ref).rsplit(".", 1)[0] + ".schedule.json")
+    tmp_sched = Path(str(tmp).rsplit(".", 1)[0] + ".schedule.json")
+    try:
+        r = subprocess.run([py, "bench/build_ref.py", str(spec), str(tmp)],
+                           cwd=ROOT, capture_output=True, text=True)
+        if r.returncode != 0:
+            return f"参照解を生成し直せない: {r.stderr.strip()[:120]}"
+        if sched.exists():
+            tmp_sched.write_bytes(sched.read_bytes())
+        g = subprocess.run([py, "bench/check.py", str(spec), str(ref), str(tmp)],
+                           cwd=ROOT, capture_output=True, text=True)
+        try:
+            a, b = json.loads(g.stdout)
+        except Exception as e:
+            return f"採点器で比べられない: {e}"
+        diff = [c1["name"] for c1, c2 in zip(a["checks"], b["checks"])
+                if c1["points"] != c2["points"]]
+        if diff:
+            return "生成し直すと点数が変わる項目: " + " / ".join(diff[:4])
+    finally:
+        for f in (tmp, tmp_sched):
+            if f.exists():
+                f.unlink()
+    return None
 
 
 def answers(task: str) -> list[Path]:
@@ -138,9 +205,14 @@ def verify(task: str) -> int:
 
     hard, soft = drift("hard"), drift("soft")
     label = "凍結" if frozen else "事後記録"
+    bad_ref = verify_ref(task)
+    if bad_ref:
+        print(f"[NG] {task}: **参照解が入力と食い違っている** — {bad_ref}")
+        return 1
     if not hard and not soft:
         n = len(doc["hard"]) + len(doc["soft"])
-        print(f"[OK] {task}: {label}の {n}件は動いていない（答案 {len(have)}本）")
+        print(f"[OK] {task}: {label}の {n}件は動いていない"
+              f"（答案 {len(have)}本 / 参照解は生成し直しても意味が一致）")
         return 0
     for rel, want, got in soft:
         print(f"[--] {task}: 共有コードが動いた {rel}  {want[:12]} -> {got[:12]}")
