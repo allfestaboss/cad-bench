@@ -1,0 +1,27 @@
+{
+ "task": "T005",
+ "kind": "**事後記録であって凍結ではない。**過去を保証しない。これから先の改変を検出できるようにするだけである",
+ "answers_at_record": [
+  "armB_cobalt-quartz.dxf",
+  "armB_jade-lantern.dxf",
+  "armB_rust-anvil.dxf",
+  "armB_sable-wick.dxf",
+  "armB_teal-furrow.dxf"
+ ],
+ "arms_prompt_recorded": false,
+ "hard": {
+  "tasks/T005/spec.json": "96f3510dfbf6ad69273eb53187bfbf3aa9405c5bafc43b77d57d62a58f8dd9f8",
+  "reference/reference_t005.dxf": "96f146aec562671b2b505567f057808173783ae45259097434169f54b6ceae71"
+ },
+ "soft": {
+  "bench/build_ref.py": "73415509d55e3db0b37216cd171b79df22061f209eb14d7abb761f7e29959e99",
+  "bench/check.py": "8b4761899b72f09b69aed21cc80b7f680cd9835aa25014749c184d4d1c1ec952",
+  "bench/code_check.py": "171121f05b5f7fe8edad2b633e11052c807bd830140aac2c739c13bf8044b660",
+  "bench/geom.py": "7ddc8142663d21be586883ea5855ba4c8de55d4fd76299db94e4fd8567a9ff67",
+  "bench/resolve.py": "5b4e65a4d1104d667693e8e576d0a3a94f56ca764c18f85e5358675420834673",
+  "bench/solve_code.py": "0d1d2195a04791af16468894f7ab5ff81bb50cc73b975a085fe2b76f06f0d854",
+  "checker/adversarial.py": "f911d52c5050e676a1c8e3130a4e84845067c03b97cc5591150d4797586c9015",
+  "checker/dessia_probe.py": "2a9c1c6a8ab58403ec718af305aaedab80418abea4b6f6eefdb49a6f25614043",
+  "checker/render.py": "480c22a67e70dbe09d71988c98c2dca97e032d6b2d7f4f72b4b8373538abbd64"
+ }
+}
