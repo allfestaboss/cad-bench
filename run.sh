@@ -54,3 +54,6 @@ PY
 done
 echo
 echo "詳細: out/<TASK>.txt  /  画像: reference/*.png attempts/*/*.png"
+
+# 公開メタデータの版ズレ（Zenodo は .zenodo.json を権威として読む）
+$PY bench/release_check.py || exit 1
