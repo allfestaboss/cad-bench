@@ -24,15 +24,15 @@ date-released: "2026-08-12"
 license: MIT
 
 # この版（v1.0.0）を指す DOI
-doi: "10.5281/zenodo.21847359"
+doi: "10.5281/zenodo.21896774"
 
 identifiers:
   - type: doi
     value: "10.5281/zenodo.21847358"
     description: "Concept DOI — 常に最新版に解決する。版を問わず引用する場合はこちら。"
   - type: doi
-    value: "10.5281/zenodo.21847359"
-    description: "Version DOI — v1.0.0 を指す。再現性を担保する場合はこちら。"
+    value: "10.5281/zenodo.21896774"
+    description: "Version DOI — v1.1.0 を指す。再現性を担保する場合はこちら。"
 url: "https://github.com/allfestaboss/cad-bench"
 repository-code: "https://github.com/allfestaboss/cad-bench"
 
