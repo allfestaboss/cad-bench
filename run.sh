@@ -16,7 +16,11 @@ for T in "${TASKS[@]}"; do
   SPEC="tasks/$T/spec.json"
   $PY bench/resolve.py "$SPEC" "out/${T}_resolved.json" 2>/dev/null || true
   REF="reference/reference_$(echo "$T" | tr 'A-Z' 'a-z').dxf"
-  $PY bench/build_ref.py "$SPEC" "$REF"
+  # **参照解は生成し直さない。**DXF は作成時刻と GUID を含むのでバイトが安定せず、
+  # 走らせるたびに公開済みの参照解が書き換わっていた（実際に5本を書き換えて push した）。
+  # 仕様との一致は上の bench.freeze が verify_ref() で**意味**を見ている。
+  # ここで作るのは、参照解がまだ無い新規課題のときだけ。
+  [ -e "$REF" ] || $PY bench/build_ref.py "$SPEC" "$REF"
 
   FILES=("$REF")
   for f in attempts/$T/*.dxf; do [ -e "$f" ] && FILES+=("$f"); done

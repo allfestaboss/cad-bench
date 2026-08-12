@@ -110,8 +110,14 @@ def verify_ref(task: str) -> str | None:
     import subprocess, tempfile
     ref = ROOT / f"reference/reference_{task.lower()}.dxf"
     spec = ROOT / "tasks" / task / TASK_FILE
-    if not ref.exists() or not spec.exists():
+    if not spec.exists():
         return None
+    if not ref.exists():
+        # **答案があるのに参照解が無いのは異常。**新規課題（答案ゼロ）なら
+        # run.sh が作るので通す。誤検出はしない: 答案がある課題は必ず参照解を持つ。
+        return None if not answers(task) else (
+            "答案が %d本あるのに参照解が無い。**run.sh は答案のある課題の参照解を"
+            "作り直さないので、消えたまま採点される。**" % len(answers(task)))
     py = ROOT / ".venv/bin/python"
     py = str(py) if py.exists() else sys.executable
     tmp = ref.with_name(f".verify_{task.lower()}.dxf")   # **隣に置く**
